@@ -99,7 +99,15 @@ public class ApplicationService {
             application.setJobPost(job);
             application.setWorker(worker);
             application.setStatus(ApplicationStatus.PENDING);
-            application = applicationRepository.save(application);
+            try {
+                // The (job_post, worker) unique constraint is the real guard against duplicates;
+                // two concurrent first-time applies race past the findByJobPostAndWorker check
+                // above and one loses here. Translate the raw constraint violation into the same
+                // friendly message instead of a generic 409.
+                application = applicationRepository.saveAndFlush(application);
+            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                throw new BusinessException("You have already applied for this job");
+            }
         }
 
         if (worker.getStatus() == VerificationStatus.VERIFIED) {
