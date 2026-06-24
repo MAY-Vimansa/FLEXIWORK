@@ -66,13 +66,6 @@ app.post('/send', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error(`❌ Failed to send to ${to}:`, err.message);
-    // Puppeteer's underlying page/frame died (e.g. the linked WhatsApp
-    // session was invalidated or reused on another machine) — mark not
-    // ready instead of letting every future /send fail the same silent way.
-    if (/detached frame|session closed|protocol error/i.test(err.message)) {
-      isReady = false;
-      console.error('   WhatsApp session appears dead. Restart this service and re-scan the QR code.');
-    }
     res.status(500).json({ error: err.message });
   }
 });
