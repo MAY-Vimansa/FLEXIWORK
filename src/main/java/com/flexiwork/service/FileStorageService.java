@@ -65,6 +65,11 @@ public class FileStorageService {
         if (contentType == null || !allowedTypes.contains(contentType)) {
             throw new BusinessException(error);
         }
+        // The declared Content-Type is client-supplied and spoofable; verify the actual file
+        // signature (magic bytes) matches the declared type before trusting it.
+        if (!signatureMatches(file, contentType)) {
+            throw new BusinessException(error);
+        }
         String ext = switch (contentType) {
             case "image/png" -> ".png";
             case "application/pdf" -> ".pdf";
@@ -80,6 +85,32 @@ public class FileStorageService {
             throw new BusinessException("Failed to store file: " + e.getMessage());
         }
         return root.relativize(target).toString().replace('\\', '/');
+    }
+
+    /**
+     * Confirms the uploaded bytes actually start with the magic number for the declared MIME type.
+     * JPEG: {@code FF D8 FF}; PNG: {@code 89 50 4E 47}; PDF: {@code 25 50 44 46} ("%PDF").
+     */
+    private boolean signatureMatches(MultipartFile file, String contentType) {
+        byte[] head = new byte[8];
+        int read;
+        try (var in = file.getInputStream()) {
+            read = in.readNBytes(head, 0, head.length);
+        } catch (IOException e) {
+            return false;
+        }
+        if (read < 4) {
+            return false;
+        }
+        return switch (contentType) {
+            case "image/jpeg" -> (head[0] & 0xFF) == 0xFF && (head[1] & 0xFF) == 0xD8
+                    && (head[2] & 0xFF) == 0xFF;
+            case "image/png" -> (head[0] & 0xFF) == 0x89 && head[1] == 'P' && head[2] == 'N'
+                    && head[3] == 'G';
+            case "application/pdf" -> head[0] == '%' && head[1] == 'P' && head[2] == 'D'
+                    && head[3] == 'F';
+            default -> false;
+        };
     }
 
     /** Persist raw bytes (e.g. a generated QR PNG) at {@code subDir/filename}; returns rel path. */
