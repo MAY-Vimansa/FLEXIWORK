@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <script>(function(){try{var t=localStorage.getItem('fw-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}}());</script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlexiWork Admin — Payments</title>
+  <style th:utext="${adminCss}"></style>
+</head>
+<body>
+<div class="app">
+  <div th:replace="~{admin/fragments :: sidebar('payments')}"></div>
+  <main class="main"><div class="content">
+
+    <div th:replace="~{admin/fragments :: pageHeader('Payments', 'Commission earnings and billing')}"></div>
+
+    <!-- Summary card -->
+    <div class="stat-cards" style="grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); margin-bottom: 28px;">
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon orange">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <rect x="2" y="5" width="20" height="14" rx="2.5" fill="none" stroke="#E65100" stroke-width="2"/>
+              <rect x="2" y="9" width="20" height="3" fill="#E65100" fill-opacity=".2"/>
+              <rect x="5" y="13" width="5" height="2" rx="1" fill="#E65100"/>
+            </svg>
+          </div>
+          <span class="stat-pct" style="background:#FFF3E0;color:#E65100;">Total</span>
+        </div>
+        <div class="stat-value lg">
+          <span style="font-size:14px;font-weight:700;color:#767676;margin-right:3px;">LKR</span><span th:text="${commissionEarned}">0</span>
+        </div>
+        <div class="stat-label">Commission Earned</div>
+      </div>
+    </div>
+
+    <!-- Payments table -->
+    <div class="empty" th:if="${payments.isEmpty()}">No payments yet.</div>
+
+    <div class="table-wrap" th:unless="${payments.isEmpty()}">
+      <table>
+        <thead>
+        <tr><th>Receipt</th><th>Company</th><th>Job</th><th>Date</th><th>Total Wages</th><th>Commission</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${payments}">
+          <td style="font-weight:600;font-size:12px;" th:text="${p.receiptNumber}">FLX-2026-00001</td>
+          <td th:text="${p.company.companyName}">ABC Hotels</td>
+          <td th:text="${p.jobPost.title}">Waiter</td>
+          <td th:text="${p.jobDate}">2026-07-01</td>
+          <td th:text="${'LKR ' + p.totalWages}">0</td>
+          <td th:text="${'LKR ' + p.commissionAmount}">0</td>
+          <td><span class="badge" th:classappend="${#strings.toLowerCase(p.status)}" th:text="${p.status}">PENDING</span></td>
+          <td>
+            <form class="inline" method="post" th:action="@{'/admin/payments/' + ${p.id} + '/paid'}"
+                  th:if="${p.status.name() == 'PENDING'}">
+              <input type="hidden" name="_method" value="put"/>
+              <button class="btn btn-primary" type="submit">Mark paid</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Suspended companies -->
+    <h2 style="margin-top:32px;">Suspended Companies</h2>
+
+    <div class="empty" th:if="${suspendedCompanies == null or suspendedCompanies.isEmpty()}">
+      No companies are currently suspended.
+    </div>
+
+    <div class="table-wrap" th:if="${suspendedCompanies != null and !suspendedCompanies.isEmpty()}">
+      <table>
+        <thead><tr><th>Company</th><th>District</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+        <tr th:each="c : ${suspendedCompanies}">
+          <td style="font-weight:600;" th:text="${c.companyName}">ABC</td>
+          <td th:text="${c.district}">COLOMBO</td>
+          <td><span class="badge cancelled">SUSPENDED</span></td>
+          <td>
+            <form class="inline" method="post" th:action="@{'/admin/companies/' + ${c.id} + '/unsuspend'}">
+              <input type="hidden" name="_method" value="put"/>
+              <button class="btn btn-primary" type="submit">Un-suspend</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div></main>
+</div>
+</body>
+</html>
