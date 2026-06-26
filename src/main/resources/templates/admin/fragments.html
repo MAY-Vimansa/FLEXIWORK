@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head><meta charset="UTF-8"/></head>
+<body>
+
+<!-- Left sidebar. Requires model attrs: pendingCounts, adminName -->
+<aside th:fragment="sidebar(active)" class="sidebar">
+
+  <div class="sidebar-brand">
+    <div class="fw-icon">FW</div>
+    <div class="brand-text">
+      <div class="brand-name">Flexi<span>Work</span></div>
+      <span class="admin-badge">Admin</span>
+    </div>
+  </div>
+
+  <div class="nav-section-label">Main</div>
+
+  <nav class="side-nav">
+    <a th:href="@{/admin}" th:classappend="${active == 'dashboard'} ? ' active'">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="6.5" height="6.5" rx="1.8" fill="currentColor"/>
+        <rect x="10.5" y="1" width="6.5" height="6.5" rx="1.8" fill="currentColor"/>
+        <rect x="1" y="10.5" width="6.5" height="6.5" rx="1.8" fill="currentColor"/>
+        <rect x="10.5" y="10.5" width="6.5" height="6.5" rx="1.8" fill="currentColor"/>
+      </svg>
+      Dashboard
+    </a>
+
+    <a th:href="@{/admin/workers}" th:classappend="${active == 'workers'} ? ' active'">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="5.5" r="3.5" fill="currentColor"/>
+        <path d="M1.5 16.5c0-4.14 3.36-7.5 7.5-7.5s7.5 3.36 7.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      Workers
+      <span class="nav-badge"
+            th:if="${pendingCounts != null and pendingCounts.workers() > 0}"
+            th:text="${pendingCounts.workers()}">0</span>
+    </a>
+
+    <a th:href="@{/admin/companies}" th:classappend="${active == 'companies'} ? ' active'">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="7" width="14" height="10" rx="1.5" fill="currentColor"/>
+        <path d="M5.5 7V4.5a3.5 3.5 0 017 0V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <rect x="7" y="11" width="4" height="6" rx="1" fill="white"/>
+      </svg>
+      Companies
+      <span class="nav-badge"
+            th:if="${pendingCounts != null and pendingCounts.companies() > 0}"
+            th:text="${pendingCounts.companies()}">0</span>
+    </a>
+
+    <a th:href="@{/admin/ledger}" th:classappend="${active == 'ledger'} ? ' active'">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="1.5" width="15" height="15" rx="1.8" fill="currentColor"/>
+        <line x1="4" y1="5.5" x2="14" y2="5.5" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="4" y1="9" x2="14" y2="9" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="4" y1="12.5" x2="10" y2="12.5" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+      Ledger
+    </a>
+
+    <a th:href="@{/admin/jobs}" th:classappend="${active == 'jobs'} ? ' active'">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="5.5" width="15" height="11" rx="1.8" fill="currentColor"/>
+        <path d="M6 5.5V4a3 3 0 016 0v1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="1.5" y1="10" x2="16.5" y2="10" stroke="white" stroke-width="1.3"/>
+      </svg>
+      Jobs
+    </a>
+
+    <a th:href="@{/admin/payments}" th:classappend="${active == 'payments'} ? ' active'">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="4" width="15" height="10" rx="1.8" fill="currentColor"/>
+        <rect x="1.5" y="7.5" width="15" height="2.8" fill="white" fill-opacity=".25"/>
+        <rect x="3.5" y="10.5" width="4" height="1.5" rx=".5" fill="white"/>
+      </svg>
+      Payments
+    </a>
+
+    <a th:href="@{/admin/messages}" th:classappend="${active == 'messages'} ? ' active'">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="3" width="16" height="12" rx="1.8" fill="currentColor"/>
+        <path d="M2 4.5l7 5 7-5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Messages
+      <span class="nav-badge"
+            th:if="${pendingCounts != null and pendingCounts.messages() > 0}"
+            th:text="${pendingCounts.messages()}">0</span>
+    </a>
+  </nav>
+
+  <div class="side-foot">
+    <button id="fw-theme-toggle" type="button" style="width:100%;background:var(--bg);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;font-family:inherit;font-size:13.5px;transition:background .15s,border-color .15s;">
+    </button>
+    <div class="sidebar-user">
+      <div class="user-avatar"
+           th:text="${adminName != null and adminName.length() > 1 ? adminName.substring(0,2).toUpperCase() : (adminName != null ? adminName.toUpperCase() : 'AD')}">AD</div>
+      <div class="user-info">
+        <div class="user-name" th:text="${adminName != null ? adminName : 'Admin'}">Admin</div>
+        <div class="user-role">System Administrator</div>
+      </div>
+      <form th:action="@{/logout}" method="post" style="margin-left:auto;flex-shrink:0;">
+        <button type="submit" title="Log out"
+                style="width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:transparent;cursor:pointer;display:grid;place-items:center;color:var(--text-muted);transition:background .15s,color .15s,border-color .15s;"
+                onmouseover="this.style.background='#FFF0EE';this.style.color='#EB1700';this.style.borderColor='#EB1700';"
+                onmouseout="this.style.background='transparent';this.style.color='var(--text-muted)';this.style.borderColor='var(--border)';">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var SUN='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+    var MOON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    var html=document.documentElement;
+    var btn=document.getElementById('fw-theme-toggle');
+    function update(){
+      var isDark=html.getAttribute('data-theme')==='dark';
+      btn.innerHTML=isDark ? SUN+' Light mode' : MOON+' Dark mode';
+    }
+    btn.addEventListener('click',function(){
+      var isDark=html.getAttribute('data-theme')==='dark';
+      if(isDark){html.removeAttribute('data-theme');try{localStorage.setItem('fw-theme','light');}catch(e){}}
+      else{html.setAttribute('data-theme','dark');try{localStorage.setItem('fw-theme','dark');}catch(e){}}
+      update();
+    });
+    update();
+  })();
+  </script>
+</aside>
+
+<!-- Page content header. Params: title, subtitle -->
+<th:block th:fragment="pageHeader(title, subtitle)">
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 th:text="${title}">Page Title</h1>
+    <div class="page-subtitle" th:text="${subtitle}">Description</div>
+  </div>
+  <div class="page-header-right">
+    <div class="notif-wrap">
+      <button class="icon-btn" id="fw-notif-btn" type="button"
+              th:classappend="${notifications != null and !notifications.isEmpty()} ? ' has-notif'"
+              title="Notifications">
+        <svg width="17" height="17" fill="none" viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#3D3D3D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13.73 21a2 2 0 01-3.46 0" stroke="#3D3D3D" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="notif-panel" id="fw-notif-panel">
+        <div class="notif-panel-head">Notifications</div>
+        <div class="notif-empty" th:if="${notifications == null or notifications.isEmpty()}">You're all caught up.</div>
+        <a class="notif-item" th:each="n : ${notifications}" th:href="@{${n.link}}">
+          <div class="notif-msg" th:text="${n.message}">New item</div>
+          <div class="notif-time" th:attr="data-ts=${n.createdAt}">just now</div>
+        </a>
+      </div>
+    </div>
+    <button class="icon-btn" id="fw-settings-btn" title="Settings" type="button">
+      <svg width="17" height="17" fill="none" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3" stroke="#3D3D3D" stroke-width="2"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="#3D3D3D" stroke-width="2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Platform settings popup -->
+<div class="modal-backdrop" id="fw-settings-backdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div style="font-weight:700;">Platform settings</div>
+      <button type="button" class="modal-close" id="fw-settings-close" aria-label="Close">&times;</button>
+    </div>
+    <form method="post" th:action="@{/admin/settings}">
+      <input type="hidden" name="_method" value="put"/>
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div class="modal-body">
+        <div class="modal-field">
+          <span class="modal-label">Commission rate</span>
+          <input type="number" name="commissionRate" step="0.01" min="0" max="1" required
+                 th:value="${systemSettings != null ? systemSettings.commissionRate : 0.10}"/>
+        </div>
+        <div style="color:var(--text-muted);font-size:12px;margin:-4px 0 12px 78px;">Fraction of wages, e.g. 0.10 = 10%</div>
+
+        <div class="modal-field">
+          <span class="modal-label">Payment grace (days)</span>
+          <input type="number" name="paymentGraceDays" step="1" min="1" required
+                 th:value="${systemSettings != null ? systemSettings.paymentGraceDays : 7}"/>
+        </div>
+        <div style="color:var(--text-muted);font-size:12px;margin:-4px 0 12px 78px;">Days a company has to pay before being suspended</div>
+
+        <div class="modal-field">
+          <span class="modal-label">Auto-approve (min)</span>
+          <input type="number" name="approvalAutoWindowMinutes" step="1" min="1" required
+                 th:value="${systemSettings != null ? systemSettings.approvalAutoWindowMinutes : 720}"/>
+        </div>
+        <div style="color:var(--text-muted);font-size:12px;margin:-4px 0 12px 78px;">Minutes before a pending worker/company KYC auto-verifies</div>
+
+        <div class="modal-field">
+          <span class="modal-label">Cancel cutoff (hrs)</span>
+          <input type="number" name="cancelCutoffHours" step="1" min="0" required
+                 th:value="${systemSettings != null ? systemSettings.cancelCutoffHours : 2}"/>
+        </div>
+        <div style="color:var(--text-muted);font-size:12px;margin:-4px 0 4px 78px;">Hours before shift start when cancelling becomes blocked</div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Save settings</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  var btn = document.getElementById('fw-notif-btn');
+  var panel = document.getElementById('fw-notif-panel');
+  if (btn && panel) {
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      panel.classList.toggle('open');
+    });
+    document.addEventListener('click', function(e){
+      if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
+    });
+  }
+
+  function relativeTime(iso) {
+    var diffSec = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (diffSec < 60) return 'just now';
+    if (diffSec < 3600) return Math.floor(diffSec / 60) + 'm ago';
+    if (diffSec < 86400) return Math.floor(diffSec / 3600) + 'h ago';
+    return Math.floor(diffSec / 86400) + 'd ago';
+  }
+  document.querySelectorAll('.notif-time[data-ts]').forEach(function(el){
+    el.textContent = relativeTime(el.getAttribute('data-ts'));
+  });
+
+  var settingsBtn = document.getElementById('fw-settings-btn');
+  var settingsBackdrop = document.getElementById('fw-settings-backdrop');
+  var settingsClose = document.getElementById('fw-settings-close');
+  if (settingsBtn && settingsBackdrop) {
+    settingsBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      settingsBackdrop.classList.add('open');
+    });
+    settingsClose.addEventListener('click', function(){ settingsBackdrop.classList.remove('open'); });
+    settingsBackdrop.addEventListener('click', function(e){
+      if (e.target === settingsBackdrop) settingsBackdrop.classList.remove('open');
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') settingsBackdrop.classList.remove('open');
+    });
+  }
+})();
+</script>
+</th:block>
+
+</body>
+</html>
