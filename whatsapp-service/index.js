@@ -1,158 +1,175 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const {
+  default: makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason,
+  fetchLatestBaileysVersion,
+  makeCacheableSignalKeyStore,
+} = require('@whiskeysockets/baileys');
 const express = require('express');
+const pino = require('pino');
+const fs = require('fs');
 
 const app = express();
 app.use(express.json());
 
 const SHARED_SECRET = process.env.WHATSAPP_SHARED_SECRET || 'dev-only-change-me';
+const SESSION_PATH = './baileys_session';
+const PORT = process.env.PORT || 3001;
 
+let sock = null;
 let isReady = false;
+let pairingRequested = false;
+let reconnectTimer = null;
 
-// executablePath: only set it when CHROME_PATH is provided (e.g. a Windows dev box pointing at an
-// installed Chrome). When unset, puppeteer falls back to its own bundled Chromium, which is what
-// makes the service portable to a Linux container. Never hardcode an OS-specific path here.
-// WHATSAPP_WEB_VERSION pins the WhatsApp Web build (via wppconnect's wa-version cache). Newer
-// builds broke direct-message delivery in whatsapp-web.js (sends to real recipients failed with
-// ack=-1; only self-messages worked). Pinning this older build restored delivery (verified
-// 2026-06-24: ack=2 DELIVERED to a real third-party number). Bump only if WhatsApp forces it and
-// re-verify delivery. Override via the WHATSAPP_WEB_VERSION env var if needed.
-const PINNED_WEB_VERSION = process.env.WHATSAPP_WEB_VERSION || '2.3000.1038088231';
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
-const client = new Client({
-  authStrategy: new LocalAuth({ dataPath: './session' }),
-  ...(PINNED_WEB_VERSION ? {
-    webVersion: PINNED_WEB_VERSION,
-    webVersionCache: {
-      type: 'remote',
-      remotePath: `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${PINNED_WEB_VERSION}.html`,
+function wipeSession() {
+  try {
+    fs.rmSync(SESSION_PATH, { recursive: true, force: true });
+    console.log(' Session folder wiped.');
+  } catch (e) {
+    console.error('⚠️  Failed to wipe session:', e.message);
+  }
+}
+
+function formatNumber(raw) {
+  let n = raw.replace(/[^0-9]/g, '');
+  if (n.startsWith('0') && n.length === 10) {
+    n = '94' + n.substring(1); // 07x → 947x
+  } else if (!n.startsWith('94') && n.length === 9) {
+    n = '94' + n;              // 7x  → 947x
+  }
+  return n + '@s.whatsapp.net';
+}
+
+// ── Core WhatsApp connector ──────────────────────────────────────────────────
+
+async function connectToWhatsApp() {
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+
+  const { version } = await fetchLatestBaileysVersion();
+  const { state, saveCreds } = await useMultiFileAuthState(SESSION_PATH);
+
+  sock = makeWASocket({
+    version,
+    auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
     },
-  } : {}),
-  puppeteer: {
-    headless: true,
-    ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}),
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  },
-});
+    printQRInTerminal: false,
+    browser: ['Ubuntu', 'Chrome', '20.0.04'],
+    logger: pino({ level: 'silent' }),
+    syncFullHistory: false,          // avoids heavy sync that triggers ghost sessions
+    markOnlineOnConnect: false,
+    getMessage: async () => undefined, // prevents crash on missing pre-key messages
+  });
 
-// First run: print QR code in terminal — scan with WhatsApp once, never again
-client.on('qr', (qr) => {
-  console.log('\n========================================');
-  console.log('  Scan this QR code with your WhatsApp');
-  console.log('  WhatsApp > Linked Devices > Link a Device');
-  console.log('========================================\n');
-  qrcode.generate(qr, { small: true });
-});
+  // ── Request pairing code (only once per fresh session) ──────────────────
+  if (!sock.authState.creds.registered && !pairingRequested) {
+    pairingRequested = true;
+    setTimeout(async () => {
+      const phone = (process.env.WA_PHONE || '94719731494').replace(/[^0-9]/g, '');
+      try {
+        console.log(`\n📡 Requesting pairing code for: ${phone}`);
+        const code = await sock.requestPairingCode(phone);
+        const formatted = code.match(/.{1,4}/g).join('-').toUpperCase();
+        console.log('\n══════════════════════════════════════');
+        console.log(`PAIRING CODE: [ ${formatted} ]`);
+        console.log('══════════════════════════════════════\n');
+      } catch (err) {
+        console.error('❌ Pairing code request failed:', err.message);
+        pairingRequested = false; // allow retry
+      }
+    }, 5000);
+  }
 
-client.on('authenticated', () => {
-  console.log('✅ WhatsApp authenticated — session saved.');
-});
+  // ── Connection events ────────────────────────────────────────────────────
+  sock.ev.on('connection.update', (update) => {
+    const { connection, lastDisconnect } = update;
+    const statusCode = lastDisconnect?.error?.output?.statusCode;
 
-client.on('ready', () => {
-  isReady = true;
-  console.log('✅ WhatsApp client ready. FlexiWork can now send messages.');
-});
+    if (connection === 'open') {
+      isReady = true;
+      pairingRequested = false;
+      console.log('✅ WhatsApp connected and ready.');
+      return;
+    }
 
-client.on('disconnected', (reason) => {
-  isReady = false;
-  console.warn('⚠️  WhatsApp disconnected:', reason);
-});
+    if (connection === 'close') {
+      isReady = false;
+      console.log(`Connection closed — status: ${statusCode}`);
 
-client.initialize();
+      // 405 = connectionReplaced (ghost session / duplicate)
+      if (
+          statusCode === 405 ||
+          statusCode === DisconnectReason.connectionReplaced
+      ) {
+        console.log('Ghost session detected. Wiping and restarting cleanly...');
+        wipeSession();
+        // Give Railway 15 s to fully kill the old container before restarting.
+        // process.exit(1) signals Railway to redeploy a fresh instance.
+        console.log('Exiting in 15 s to let Railway clean up old containers...');
+        setTimeout(() => process.exit(1), 15_000);
+        return;
+      }
 
-// ── REST API ──────────────────────────────────────────────────────────────────
+      // 401 = logged out (user removed device from WhatsApp)
+      if (statusCode === DisconnectReason.loggedOut) {
+        console.log('Logged out. Wiping session. Re-pair needed.');
+        wipeSession();
+        pairingRequested = false;
+        reconnectTimer = setTimeout(connectToWhatsApp, 5000);
+        return;
+      }
 
-// POST /send  { to: "+94771234567", message: "Hello" }
-app.post('/send', async (req, res) => {
+      // All other drops — reconnect after 10 s
+      console.log('Reconnecting in 10 s...');
+      reconnectTimer = setTimeout(connectToWhatsApp, 10_000);
+    }
+  });
+
+  sock.ev.on('creds.update', saveCreds);
+}
+
+// ── Boot (3 s grace for Railway to kill the previous container first) ────────
+setTimeout(connectToWhatsApp, 3000);
+
+// ── REST API ─────────────────────────────────────────────────────────────────
+
+function authMiddleware(req, res, next) {
   if (req.header('X-Internal-Secret') !== SHARED_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  next();
+}
+
+// POST /send  — send a verification code (or any message)
+app.post('/send', authMiddleware, async (req, res) => {
   const { to, message } = req.body;
 
   if (!to || !message) {
-    return res.status(400).json({ error: 'Both "to" and "message" are required.' });
+    return res.status(400).json({ error: '"to" and "message" are required.' });
   }
-  if (!isReady) {
-    return res.status(503).json({ error: 'WhatsApp client not ready yet. Check terminal for QR code.' });
+  if (!isReady || !sock) {
+    return res.status(503).json({ error: 'WhatsApp client not ready.' });
   }
 
   try {
-    const numberId = await client.getNumberId(to.replace(/^\+/, ''));
-    if (!numberId) {
-      console.warn(`⚠️  ${to} is not registered on WhatsApp — message not sent.`);
-      return res.status(422).json({ error: `${to} is not registered on WhatsApp.` });
-    }
-    const sent = await client.sendMessage(numberId._serialized, message);
-    console.log(`📤 Sent to ${to} (resolved id: ${numberId._serialized})`);
-
-    // Wait briefly for the delivery acknowledgement so callers can tell a real
-    // delivery from a silent failure. ack levels: -1 error, 0 pending, 1 server,
-    // 2 device (delivered), 3 read. Anything >= 2 means it reached the recipient.
-    const ack = await new Promise((resolve) => {
-      if (sent.ack >= 2) return resolve(sent.ack);
-      const onAck = (msg, a) => {
-        if (msg.id._serialized === sent.id._serialized && a >= 2) {
-          client.removeListener('message_ack', onAck);
-          resolve(a);
-        }
-      };
-      client.on('message_ack', onAck);
-      setTimeout(() => { client.removeListener('message_ack', onAck); resolve(sent.ack); }, 6000);
-    });
-    const ackName = { '-1': 'ERROR', 0: 'PENDING', 1: 'SERVER_ONLY', 2: 'DELIVERED', 3: 'READ' }[ack] || String(ack);
-    console.log(`   ack=${ack} (${ackName})`);
-    // ack === -1 means WhatsApp actively rejected delivery (e.g. the recipient can't be
-    // reached). Report it as a failure so callers don't treat a dead-on-arrival message as
-    // sent. ack 0/1 within the wait window is still in-flight, so we report those as success.
-    if (ack === -1) {
-      console.warn(`⚠️  Delivery failed for ${to} (ack=-1). Recipient may be unreachable.`);
-      return res.status(502).json({ success: false, ack, ackName, error: 'WhatsApp rejected delivery to this recipient.' });
-    }
-    res.json({ success: true, ack, ackName });
+    const jid = formatNumber(to);
+    await sock.sendMessage(jid, { text: message });
+    console.log(`Message sent to: ${jid}`);
+    res.json({ success: true, sentTo: jid });
   } catch (err) {
-    console.error(`❌ Failed to send to ${to}:`, err.message);
-    // Puppeteer's underlying page/frame died (e.g. the linked WhatsApp
-    // session was invalidated or reused on another machine) — mark not
-    // ready instead of letting every future /send fail the same silent way.
-    if (/detached frame|session closed|protocol error/i.test(err.message)) {
-      isReady = false;
-      console.error('   WhatsApp session appears dead. Restart this service and re-scan the QR code.');
-    }
+    console.error(`❌ Send failed for ${to}:`, err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /status
-app.get('/status', (req, res) => {
+// GET /status — health check
+app.get('/status', (_req, res) => {
   res.json({ ready: isReady });
 });
 
-// GET /check/:number — read-only registration lookup, sends nothing. Lets the backend (or you,
-// while debugging) confirm a number can actually receive WhatsApp messages before relying on it.
-app.get('/check/:number', async (req, res) => {
-  if (req.header('X-Internal-Secret') !== SHARED_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  if (!isReady) {
-    return res.status(503).json({ error: 'WhatsApp client not ready yet.' });
-  }
-  const numberId = await client.getNumberId(req.params.number.replace(/^\+/, ''));
-  res.json({ number: req.params.number, registered: !!numberId });
-});
-
-// GET /me — which WhatsApp account is this session logged in as. Read-only, sends nothing.
-app.get('/me', (req, res) => {
-  if (req.header('X-Internal-Secret') !== SHARED_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  if (!isReady || !client.info) {
-    return res.status(503).json({ error: 'WhatsApp client not ready yet.' });
-  }
-  res.json({ linkedNumber: '+' + client.info.wid.user, pushname: client.info.pushname });
-});
-
-const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`\n🚀 FlexiWork WhatsApp service running on http://localhost:${PORT}`);
-  console.log('   Waiting for WhatsApp to initialize...\n');
+  console.log(`\nFlexiWork WhatsApp service on port ${PORT}`);
 });
