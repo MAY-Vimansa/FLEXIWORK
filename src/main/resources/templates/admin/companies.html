@@ -23,16 +23,16 @@
         </thead>
         <tbody>
         <tr th:each="c : ${companies}" class="company-row"
-            th:attr="data-id=${c.id},data-name=${c.companyName},data-br=${c.brNumber},data-district=${c.district},data-brcert=${c.brCertificatePath != null ? '/admin/files/' + c.brCertificatePath : ''},data-logo=${c.logoPath != null ? '/api/files/' + c.logoPath : ''},data-premises=${c.outsidePhotoPath != null ? '/api/files/' + c.outsidePhotoPath : ''}">
+            th:attr="data-id=${c.id},data-name=${c.companyName},data-br=${c.brNumber},data-district=${c.district},data-brcert=${c.brCertificatePath},data-logo=${c.logoPath},data-premises=${c.outsidePhotoPath}">
           <td style="font-weight:600;" th:text="${c.companyName}">ACME</td>
           <td th:text="${c.brNumber}">PV-000</td>
           <td th:text="${c.district}">COLOMBO</td>
           <td>
             <a class="doc-link" th:if="${c.brCertificatePath}" target="_blank"
-               th:href="@{'/admin/files/' + ${c.brCertificatePath}}">View BR</a>
+               th:href="${c.brCertificatePath}">View BR</a>
           </td>
-          <td><img class="thumb" th:if="${c.logoPath}" th:src="@{'/api/files/' + ${c.logoPath}}" alt="logo"/></td>
-          <td><img class="thumb" th:if="${c.outsidePhotoPath}" th:src="@{'/api/files/' + ${c.outsidePhotoPath}}" alt="premises"/></td>
+          <td><img class="thumb" th:if="${c.logoPath}" th:src="${c.logoPath}" alt="logo"/></td>
+          <td><img class="thumb" th:if="${c.outsidePhotoPath}" th:src="${c.outsidePhotoPath}" alt="premises"/></td>
           <td>
             <div class="actions">
               <button type="button" class="btn btn-primary fw-review-btn">Review</button>
