@@ -23,13 +23,13 @@
         </thead>
         <tbody>
         <tr th:each="w : ${workers}" class="worker-row"
-            th:attr="data-id=${w.id},data-name=${w.fullName},data-nic=${w.nicNumber},data-district=${w.district},data-photo=${w.profilePhotoPath != null ? '/api/files/' + w.profilePhotoPath : ''},data-nicfront=${w.nicFrontPath != null ? '/admin/files/' + w.nicFrontPath : ''},data-nicback=${w.nicBackPath != null ? '/admin/files/' + w.nicBackPath : ''}">
+            th:attr="data-id=${w.id},data-name=${w.fullName},data-nic=${w.nicNumber},data-district=${w.district},data-photo=${w.profilePhotoPath != null ? (w.profilePhotoPath.startsWith('http') ? w.profilePhotoPath : '/api/files/' + w.profilePhotoPath) : ''},data-nicfront=${w.nicFrontPath != null ? (w.nicFrontPath.startsWith('http') ? w.nicFrontPath : '/admin/files/' + w.nicFrontPath) : ''},data-nicback=${w.nicBackPath != null ? (w.nicBackPath.startsWith('http') ? w.nicBackPath : '/admin/files/' + w.nicBackPath) : ''}"
           <td style="font-weight:600;" th:text="${w.fullName}">Kamal</td>
           <td th:text="${w.nicNumber}">1990...</td>
           <td th:text="${w.district}">COLOMBO</td>
-          <td><img class="thumb" th:if="${w.profilePhotoPath}" th:src="@{'/api/files/' + ${w.profilePhotoPath}}" alt="photo"/></td>
-          <td><img class="thumb" th:if="${w.nicFrontPath}" th:src="@{'/admin/files/' + ${w.nicFrontPath}}" alt="nic front"/></td>
-          <td><img class="thumb" th:if="${w.nicBackPath}" th:src="@{'/admin/files/' + ${w.nicBackPath}}" alt="nic back"/></td>
+          <td><img class="thumb" th:if="${w.profilePhotoPath}" th:src="${w.profilePhotoPath.startsWith('http') ? w.profilePhotoPath : '/api/files/' + w.profilePhotoPath}" alt="photo"/></td>
+          <td><img class="thumb" th:if="${w.nicFrontPath}" th:src="${w.nicFrontPath.startsWith('http') ? w.nicFrontPath : '/admin/files/' + w.nicFrontPath}" alt="nic front"/></td>
+          <td><img class="thumb" th:if="${w.nicBackPath}" th:src="${w.nicBackPath.startsWith('http') ? w.nicBackPath : '/admin/files/' + w.nicBackPath}" alt="nic back"/></td>
           <td>
             <div class="actions">
               <button type="button" class="btn btn-primary fw-review-btn">Review</button>
