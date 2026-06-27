@@ -337,7 +337,7 @@ function ProfilePanel({ profile, districts, onSaved, showToast }) {
     <div className="wd-form-card">
       <div className="wd-avatar-row">
         {profile.profilePhotoPath
-          ? <img src={`/api/files/${profile.profilePhotoPath}`} alt="" className="wd-profile-avatar" style={{ objectFit: 'cover' }} />
+            ? <img src={profile.profilePhotoPath.startsWith('http') ? profile.profilePhotoPath : `/api/files/${profile.profilePhotoPath}`} alt="" className="wd-profile-avatar" style={{ objectFit: 'cover' }} />
           : <div className="wd-profile-avatar">{ini}</div>}
         <div className="wd-avatar-meta">
           <div className="wd-avatar-name">{form.fullName || '—'}</div>
