@@ -199,7 +199,8 @@ public class ApplicationService {
         }
         application.setStatus(ApplicationStatus.ACCEPTED);
         application.setQrCodeToken(UUID.randomUUID().toString());
-        qrService.generateAndStore(application.getQrCodeToken());
+        String qrUrl = qrService.generateAndStore(application.getQrCodeToken());
+        application.setQrImageUrl(qrUrl);
         application = applicationRepository.save(application);
 
         job.setWorkersAccepted(job.getWorkersAccepted() + 1);
@@ -248,8 +249,7 @@ public class ApplicationService {
     private ApplicationResponse toResponse(Application a) {
         JobPost job = a.getJobPost();
         String token = a.getQrCodeToken();
-        String qrUrl = token != null ? "/api/files/qr/" + token + ".png" : null;
-        return new ApplicationResponse(
+        String qrUrl = a.getQrImageUrl() != null ? a.getQrImageUrl() : (token != null ? "/api/files/qr/" + token + ".png" : null);        return new ApplicationResponse(
                 a.getId(),
                 a.getStatus(),
                 job.getId(),
