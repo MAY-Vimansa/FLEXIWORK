@@ -249,7 +249,8 @@ public class ApplicationService {
     private ApplicationResponse toResponse(Application a) {
         JobPost job = a.getJobPost();
         String token = a.getQrCodeToken();
-        String qrUrl = a.getQrImageUrl() != null ? a.getQrImageUrl() : (token != null ? "/api/files/qr/" + token + ".png" : null);        return new ApplicationResponse(
+        String qrUrl = a.getQrImageUrl() != null ? a.getQrImageUrl() : (token != null ? "/api/files/qr/" + token + ".png" : null);
+        return new ApplicationResponse(
                 a.getId(),
                 a.getStatus(),
                 job.getId(),
