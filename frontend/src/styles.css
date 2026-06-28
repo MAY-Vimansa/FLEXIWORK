@@ -413,3 +413,47 @@ th { color: var(--text-muted); font-weight: 700; font-size: 12px; text-transform
 [data-theme="dark"] .login-footer-text { color: #6B7280 !important; }
 [data-theme="dark"] .login-register-link { background: #1F2937 !important; border-color: #EB1700 !important; }
 [data-theme="dark"] .lc-sample-card { background: #1F2937 !important; box-shadow: 0 12px 36px rgba(0,0,0,.5) !important; }
+
+/* Modal (confirm dialog) */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0, 0, 0, .6);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: modal-fade .15s ease-out;
+}
+.modal-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 18px;
+  padding: 28px 26px; width: 100%; max-width: 380px; text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .3);
+  animation: modal-pop .18s ease-out;
+}
+.modal-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+.modal-icon-danger  { background: var(--primary-light); color: var(--primary); }
+.modal-icon-primary { background: var(--primary-light); color: var(--primary); }
+.modal-title   { margin: 0 0 8px; font-size: 19px; font-weight: 800; }
+.modal-message { margin: 0 0 24px; font-size: 14px; line-height: 1.55; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn { flex: 1; }
+/* Neutral cancel button inside the modal */
+.modal-actions .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.modal-actions .btn-ghost:hover:not(:disabled) { background: var(--surface); border-color: var(--text-muted); }
+/* Solid filled confirm button inside the modal only */
+.modal-actions .btn-danger { background: var(--primary); color: #fff; border-color: var(--primary); }
+.modal-actions .btn-danger:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+
+@keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-pop  { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+[data-theme="dark"] .modal-card { background: var(--surface); border-color: var(--border); }
+[data-theme="dark"] .modal-icon-danger,
+[data-theme="dark"] .modal-icon-primary { background: rgba(248, 113, 113, .15); color: var(--error); }
+[data-theme="dark"] .modal-actions .btn-danger { background: var(--primary); color: #fff; border-color: var(--primary); }
+[data-theme="dark"] .modal-actions .btn-danger:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+[data-theme="dark"] .modal-actions .btn-ghost { color: #F3F4F6; border-color: var(--border); }
+[data-theme="dark"] .modal-actions .btn-ghost:hover:not(:disabled) { background: #374151; border-color: #6B7280; }
