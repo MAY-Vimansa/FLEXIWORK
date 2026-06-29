@@ -552,3 +552,74 @@ th { color: var(--text-muted); font-weight: 700; font-size: 12px; text-transform
   .cdash-stat:nth-child(3n+1) { border-left: none; padding-left: 0; }
   .cdash-finance { flex-direction: column; align-items: flex-start; }
 }
+
+/* ════════════════════════════════════════════════════════
+   MY JOBS — redesigned (theme-aware, light + dark)
+   ════════════════════════════════════════════════════════ */
+
+/* Header */
+.mj-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 22px;
+}
+.mj-title-wrap { display: flex; align-items: center; gap: 12px; }
+.mj-title { margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -1px; color: var(--text); }
+.mj-post-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 12px 26px; border-radius: 9999px; border: none;
+  background: var(--primary); color: #fff; font-size: 14.5px; font-weight: 700;
+  text-decoration: none; box-shadow: 0 8px 22px rgba(235,23,0,.28);
+  transition: background .15s, transform .1s;
+}
+.mj-post-btn:hover { background: var(--primary-hover); text-decoration: none; }
+.mj-post-btn:active { transform: translateY(1px); }
+
+/* Job card */
+.mj-card {
+  position: relative; background: var(--bg);
+  border: 1px solid var(--border); border-left: 4px solid var(--primary);
+  border-radius: 18px; padding: 22px 26px; margin-top: 18px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.05);
+}
+.mj-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.mj-job-title { margin: 0; font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+.mj-card-sub { margin-top: 4px; font-size: 13.5px; font-weight: 600; color: var(--text-muted); letter-spacing: .01em; }
+
+/* Stats row: pay + accepted progress */
+.mj-card-stats { display: flex; align-items: flex-end; gap: 36px; margin-top: 20px; }
+.mj-pay { flex-shrink: 0; }
+.mj-stat-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--text-muted);
+}
+.mj-pay-value { font-size: 28px; font-weight: 800; color: var(--text); line-height: 1.1; letter-spacing: -.5px; }
+.mj-accepted { flex: 1; min-width: 0; }
+.mj-accepted-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+.mj-accepted-count { font-size: 14px; font-weight: 700; color: var(--text); }
+.mj-bar { height: 8px; border-radius: 9999px; background: var(--surface); overflow: hidden; }
+.mj-bar-fill { height: 100%; border-radius: 9999px; background: var(--primary); transition: width .3s ease; }
+[data-theme="dark"] .mj-bar { background: #374151; }
+
+/* Divider */
+.mj-divider { height: 1px; background: var(--border); margin: 20px 0 18px; }
+
+/* Action buttons */
+.mj-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.mj-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 20px; border-radius: 9999px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit; text-decoration: none;
+  transition: background .15s, border-color .15s, color .15s, transform .1s;
+}
+.mj-btn:active { transform: translateY(1px); }
+.mj-btn-ghost { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.mj-btn-ghost:hover { border-color: var(--primary); color: var(--primary); text-decoration: none; }
+.mj-btn-link { background: transparent; color: var(--text-muted); border: 1px solid transparent; padding: 10px 12px; }
+.mj-btn-link:hover { color: var(--primary); border-color: var(--border); text-decoration: none; }
+.mj-btn-danger { background: transparent; color: var(--primary); border: 1px solid transparent; }
+.mj-btn-danger:hover { background: var(--primary-light); border-color: var(--primary); }
+
+@media (max-width: 560px) {
+  .mj-card-stats { flex-direction: column; align-items: stretch; gap: 16px; }
+  .mj-accepted { width: 100%; }
+}

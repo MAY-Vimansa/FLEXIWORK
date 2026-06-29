@@ -71,33 +71,59 @@ export default function MyJobs() {
   if (!data) return <div className="page"><div className="skeleton skel-card" /></div>;
 
   return (
-    <div className="page">
-      <div className="row between">
-        <div className="row" style={{ gap: 10 }}>
-          <h1>My jobs</h1>
+    <div className="page mj">
+      <div className="mj-header">
+        <div className="mj-title-wrap">
+          <h1 className="mj-title">My jobs</h1>
           <span className="live-pill"><span className="live-dot" /> Live</span>
         </div>
-        <Link className="btn btn-primary btn-sm" to="/company/post">Post job</Link>
+        <Link className="mj-post-btn" to="/company/post">Post job</Link>
       </div>
+
       {data.content.length === 0 && <div className="empty">No jobs yet.</div>}
-      {data.content.map((j) => (
-        <div key={j.id} className="card">
-          <div className="row between">
-            <h3>{j.title}</h3>
-            <span className={`badge ${j.status}`}>{j.status}</span>
+
+      {data.content.map((j) => {
+        const accepted = Number(j.workersAccepted) || 0;
+        const needed = Number(j.workersNeeded) || 0;
+        const pct = needed > 0 ? Math.min(100, Math.round((accepted / needed) * 100)) : 0;
+        const active = j.status === 'OPEN' || j.status === 'FILLED';
+        return (
+          <div key={j.id} className="mj-card">
+            <div className="mj-card-top">
+              <h3 className="mj-job-title">{j.title}</h3>
+              <span className={`badge ${j.status}`}>{j.status}</span>
+            </div>
+            <div className="mj-card-sub">{j.jobDate} · {j.district}</div>
+
+            <div className="mj-card-stats">
+              <div className="mj-pay">
+                <div className="mj-stat-label">Pay · LKR</div>
+                <div className="mj-pay-value">{Number(j.dailyWage).toLocaleString()}</div>
+              </div>
+              <div className="mj-accepted">
+                <div className="mj-accepted-head">
+                  <span className="mj-stat-label">Accepted</span>
+                  <span className="mj-accepted-count">{accepted} / {needed}</span>
+                </div>
+                <div className="mj-bar"><div className="mj-bar-fill" style={{ width: `${pct}%` }} /></div>
+              </div>
+            </div>
+
+            <div className="mj-divider" />
+
+            <div className="mj-actions">
+              <Link className="mj-btn mj-btn-ghost" to={`/company/jobs/${j.id}/applicants`}>Applicants</Link>
+              <Link className="mj-btn mj-btn-link" to={`/jobs/${j.id}`} state={{ from: '/company/jobs' }}>View details</Link>
+              {active &&
+                <button className="mj-btn mj-btn-ghost" onClick={() => setExtendingId(j.id)}>Extend shift</button>}
+              {isOwner && active &&
+                <button className="mj-btn mj-btn-ghost" onClick={() => setConfirmCompleteId(j.id)}>Complete & bill</button>}
+              {active &&
+                <button className="mj-btn mj-btn-danger" onClick={() => setConfirmCancelId(j.id)}>Cancel</button>}
+            </div>
           </div>
-          <div className="job-meta">{j.jobDate} · {j.district} · LKR {Number(j.dailyWage).toLocaleString()} · {j.workersAccepted}/{j.workersNeeded} accepted</div>
-          <div className="row wrap mt-16">
-            <Link className="btn btn-secondary btn-sm" to={`/company/jobs/${j.id}/applicants`}>Applicants</Link>
-            {(j.status === 'OPEN' || j.status === 'FILLED') &&
-              <button className="btn btn-secondary btn-sm" onClick={() => setExtendingId(j.id)}>Extend shift</button>}
-            {isOwner && (j.status === 'OPEN' || j.status === 'FILLED') &&
-              <button className="btn btn-secondary btn-sm" onClick={() => setConfirmCompleteId(j.id)}>Complete & bill</button>}
-            {(j.status === 'OPEN' || j.status === 'FILLED') &&
-              <button className="btn btn-danger btn-sm" onClick={() => setConfirmCancelId(j.id)}>Cancel</button>}
-          </div>
-        </div>
-      ))}
+        );
+      })}
 
       <ConfirmDialog
         open={!!confirmCancelId}

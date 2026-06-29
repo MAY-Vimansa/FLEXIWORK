@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { api, ApiError } from '../api';
 import { useAuth } from '../auth';
 
@@ -8,6 +8,9 @@ export default function JobDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isCompany = user?.role === 'COMPANY' || user?.role === 'COMPANY_POSTER';
+  const backTo = location.state?.from || (isCompany ? '/company/jobs' : '/');
   const [job, setJob] = useState(null);
   const [msg, setMsg] = useState(null);
   const [err, setErr] = useState(null);
@@ -36,7 +39,7 @@ export default function JobDetail() {
 
   return (
     <div className="page page-narrow">
-      <Link to="/" className="muted">← Back to jobs</Link>
+      <Link to={backTo} className="muted">← Back to jobs</Link>
       <div className="card mt-16">
         <div className="row between">
           <h1>{job.title}</h1>
