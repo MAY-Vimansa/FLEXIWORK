@@ -34,11 +34,30 @@ export default function CompanyDashboard() {
   const company = stats?.company;
 
   return (
-    <div className="page">
-      <div className="row between">
-        <h1>Dashboard</h1>
+    <div className="page cdash">
+      {/* Header strip: brand + live */}
+      <div className="cdash-header">
+        <div className="cdash-brand">
+          <div className="cdash-logo">
+            {company?.logoPath && !logoFailed
+              ? <img src={company.logoPath} alt={company.companyName} onError={() => setLogoFailed(true)} />
+              : <span>{(company?.companyName || '?').charAt(0).toUpperCase()}</span>}
+          </div>
+          <div className="cdash-brand-text">
+            <h2 className="cdash-company">{company?.companyName || 'Company'}</h2>
+          </div>
+          {company && (
+            <>
+              <span className={`cdash-verify badge ${company.verificationStatus}`}>{company.verificationStatus}</span>
+              {company.suspended && <span className="badge CANCELLED">SUSPENDED</span>}
+            </>
+          )}
+        </div>
         <span className="live-pill"><span className="live-dot" /> Live</span>
       </div>
+
+      {/* Title */}
+      <h1 className="cdash-title">Dashboard<span className="cdash-dot">.</span></h1>
 
       {!stats && firstLoad.current ? (
         <div className="stat-grid mt-24">
@@ -46,62 +65,68 @@ export default function CompanyDashboard() {
         </div>
       ) : (
         <>
+          {/* Company meta row */}
           {company && (
-            <section className="cd-section mt-24">
-              <h4 className="cd-eyebrow">Company profile</h4>
-              <div className="cd-profile">
-                <div className="cd-profile-avatar">
-                  {company.logoPath && !logoFailed
-                    ? <img src={company.logoPath} alt={company.companyName} onError={() => setLogoFailed(true)} />
-                    : <span>{(company.companyName || '?').charAt(0).toUpperCase()}</span>}
-                </div>
-                <div className="cd-profile-body">
-                  <div className="row wrap" style={{ gap: 10 }}>
-                    <h2 style={{ margin: 0 }}>{company.companyName}</h2>
-                    <span className={`badge ${company.verificationStatus}`}>{company.verificationStatus}</span>
-                    {company.suspended && <span className="badge CANCELLED">SUSPENDED</span>}
-                  </div>
-                  <div className="cd-profile-grid mt-16">
-                    <div><span className="cd-profile-label">BR number</span><span>{company.brNumber}</span></div>
-                    <div><span className="cd-profile-label">District</span><span>{company.district?.replaceAll('_', ' ') || '—'}</span></div>
-                    <div><span className="cd-profile-label">Address</span><span>{company.addressLine || '—'}</span></div>
-                    <div><span className="cd-profile-label">Verified on</span>
-                      <span>{company.approvedAt ? new Date(company.approvedAt).toLocaleDateString() : 'Not yet'}</span></div>
-                  </div>
-                </div>
+            <div className="cdash-meta">
+              <div className="cdash-meta-item">
+                <span className="cdash-meta-label">BR number</span>
+                <span className="cdash-meta-value">{company.brNumber || '—'}</span>
               </div>
-            </section>
+              <div className="cdash-meta-item">
+                <span className="cdash-meta-label">District</span>
+                <span className="cdash-meta-value">{company.district?.replaceAll('_', ' ') || '—'}</span>
+              </div>
+              <div className="cdash-meta-item">
+                <span className="cdash-meta-label">Address</span>
+                <span className="cdash-meta-value">{company.addressLine || '—'}</span>
+              </div>
+              <div className="cdash-meta-item">
+                <span className="cdash-meta-label">Verified on</span>
+                <span className={`cdash-meta-value ${company.approvedAt ? '' : 'is-muted'}`}>
+                  {company.approvedAt ? new Date(company.approvedAt).toLocaleDateString() : 'Not yet'}
+                </span>
+              </div>
+            </div>
           )}
 
-          <section className="cd-section mt-24">
+          {/* Job overview strip */}
+          <section className="cdash-section">
             <h4 className="cd-eyebrow">Job overview</h4>
-            <div className="stat-grid">
-              {JOB_STATS.map((s) => (
-                <div key={s.key} className={`card stat cd-stat ${s.tone}`}>
-                  <div className="label">{s.label}</div>
-                  <div className="value">{stats[s.key]}</div>
-                </div>
-              ))}
+            <div className="cdash-stat-strip">
+              {JOB_STATS.map((s) => {
+                const val = Number(stats[s.key]) || 0;
+                return (
+                  <div key={s.key} className="cdash-stat">
+                    <div className="cdash-stat-label">{s.label}</div>
+                    <div className={`cdash-stat-value ${val > 0 ? 'is-on' : 'is-zero'}`}>{stats[s.key]}</div>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
-          <section className="cd-section mt-24">
+          {/* Finance */}
+          <section className="cdash-section">
             <h4 className="cd-eyebrow">Finance</h4>
-            <div className="stat-grid">
-              <div className="card stat cd-stat tone-teal">
-                <div className="label">Outstanding commission (LKR)</div>
-                <div className="value">{Number(stats.outstandingCommission).toLocaleString()}</div>
+            <div className="cdash-finance">
+              <div className="cdash-finance-body">
+                <div className="cdash-finance-label">Outstanding commission (LKR)</div>
+                <div className="cdash-finance-value">{Number(stats.outstandingCommission).toLocaleString()}</div>
               </div>
+              {Number(stats.outstandingCommission) === 0 && (
+                <span className="cdash-settled">All settled</span>
+              )}
             </div>
           </section>
         </>
       )}
 
-      <div className="row wrap mt-24">
-        <Link className="btn btn-primary" to="/company/post">Post a job</Link>
-        <Link className="btn btn-secondary" to="/company/jobs">Manage jobs</Link>
-        <Link className="btn btn-secondary" to="/company/payments">Payments</Link>
-        <Link className="btn btn-secondary" to="/company/staff">Staff</Link>
+      {/* Actions */}
+      <div className="cdash-actions">
+        <Link className="cdash-btn cdash-btn-primary" to="/company/post">Post a job</Link>
+        <Link className="cdash-btn cdash-btn-ghost" to="/company/jobs">Manage jobs</Link>
+        <Link className="cdash-btn cdash-btn-ghost" to="/company/payments">Payments</Link>
+        <Link className="cdash-btn cdash-btn-ghost" to="/company/staff">Staff</Link>
       </div>
     </div>
   );

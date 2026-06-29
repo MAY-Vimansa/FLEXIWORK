@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <script>(function(){try{var t=localStorage.getItem('fw-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}}());</script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlexiWork Admin — Companies</title>
+  <style th:utext="${adminCss}"></style>
+</head>
+<body>
+<div class="app">
+  <div th:replace="~{admin/fragments :: sidebar('companies')}"></div>
+  <main class="main"><div class="content">
+
+    <div th:replace="~{admin/fragments :: pageHeader('Companies', 'Pending company verifications')}"></div>
+
+    <div class="empty" th:if="${companies.isEmpty()}">No companies awaiting verification.</div>
+
+    <div class="table-wrap" th:unless="${companies.isEmpty()}">
+      <table>
+        <thead>
+        <tr><th>Company</th><th>BR Number</th><th>District</th><th>BR Certificate</th><th>Logo</th><th>Premises</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="c : ${companies}" class="company-row"
+            th:attr="data-id=${c.id},data-name=${c.companyName},data-br=${c.brNumber},data-district=${c.district},data-brcert=${c.brCertificatePath},data-logo=${c.logoPath},data-premises=${c.outsidePhotoPath}">
+          <td style="font-weight:600;" th:text="${c.companyName}">ACME</td>
+          <td th:text="${c.brNumber}">PV-000</td>
+          <td th:text="${c.district}">COLOMBO</td>
+          <td>
+            <a class="doc-link" th:if="${c.brCertificatePath}" target="_blank"
+               th:href="${c.brCertificatePath}">View BR</a>
+          </td>
+          <td><img class="thumb" th:if="${c.logoPath}" th:src="${c.logoPath}" alt="logo"/></td>
+          <td><img class="thumb" th:if="${c.outsidePhotoPath}" th:src="${c.outsidePhotoPath}" alt="premises"/></td>
+          <td>
+            <div class="actions">
+              <button type="button" class="btn btn-primary fw-review-btn">Review</button>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div></main>
+</div>
+
+<!-- Company review popup -->
+<div class="modal-backdrop" id="fw-company-backdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div id="fw-company-name" style="font-weight:700;"></div>
+      <button type="button" class="modal-close" id="fw-company-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field"><span class="modal-label">BR Number</span><span id="fw-company-br"></span></div>
+      <div class="modal-field"><span class="modal-label">District</span><span id="fw-company-district"></span></div>
+      <div class="modal-field" id="fw-company-brcert-row"><span class="modal-label">BR Cert</span><a id="fw-company-brcert" target="_blank">View document</a></div>
+      <div style="display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;">
+        <div>
+          <div style="color:var(--text-muted);font-size:12.5px;margin-bottom:6px;">Logo</div>
+          <img id="fw-company-logo" style="width:140px;height:140px;object-fit:cover;border-radius:10px;display:none;"/>
+        </div>
+        <div>
+          <div style="color:var(--text-muted);font-size:12.5px;margin-bottom:6px;">Premises</div>
+          <img id="fw-company-premises" style="width:140px;height:140px;object-fit:cover;border-radius:10px;display:none;"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <form class="inline" method="post" id="fw-company-verify-form">
+        <input type="hidden" name="_method" value="put"/>
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input type="hidden" name="status" value="VERIFIED"/>
+        <button class="btn btn-primary" type="submit">Verify</button>
+      </form>
+      <form class="inline" method="post" id="fw-company-reject-form">
+        <input type="hidden" name="_method" value="put"/>
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input type="hidden" name="status" value="REJECTED"/>
+        <button class="btn btn-danger" type="submit">Reject</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var backdrop = document.getElementById('fw-company-backdrop');
+  var verifyForm = document.getElementById('fw-company-verify-form');
+  var rejectForm = document.getElementById('fw-company-reject-form');
+
+  function setImg(id, src) {
+    var img = document.getElementById(id);
+    if (src) { img.src = src; img.style.display = ''; }
+    else { img.removeAttribute('src'); img.style.display = 'none'; }
+  }
+
+  function open(row) {
+    document.getElementById('fw-company-name').textContent = row.getAttribute('data-name');
+    document.getElementById('fw-company-br').textContent = row.getAttribute('data-br');
+    document.getElementById('fw-company-district').textContent = row.getAttribute('data-district');
+    var brcert = row.getAttribute('data-brcert');
+    document.getElementById('fw-company-brcert-row').style.display = brcert ? '' : 'none';
+    document.getElementById('fw-company-brcert').href = brcert || '#';
+    setImg('fw-company-logo', row.getAttribute('data-logo'));
+    setImg('fw-company-premises', row.getAttribute('data-premises'));
+
+    var action = '/admin/companies/' + row.getAttribute('data-id') + '/status';
+    verifyForm.action = action;
+    rejectForm.action = action;
+
+    backdrop.classList.add('open');
+  }
+  function close() { backdrop.classList.remove('open'); }
+
+  document.querySelectorAll('.company-row').forEach(function(row){
+    row.querySelector('.fw-review-btn').addEventListener('click', function(){ open(row); });
+  });
+  document.getElementById('fw-company-close').addEventListener('click', close);
+  backdrop.addEventListener('click', function(e){ if (e.target === backdrop) close(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+})();
+</script>
+</body>
+</html>

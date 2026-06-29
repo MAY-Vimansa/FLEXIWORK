@@ -7,11 +7,18 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "@whiskeysockets/baileys": "^7.0.0-rc13",
+    "express": "^4.22.2",
+    "pino": "^10.3.1",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.23.0"
   },
   "config": {
     "puppeteer_skip_chromium_download": "true"
-  }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {}
 }

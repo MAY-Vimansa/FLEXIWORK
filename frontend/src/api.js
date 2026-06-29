@@ -46,9 +46,11 @@ async function request(method, path, { body, isForm } = {}) {
 
   const res = await fetch(path, { method, headers, body: payload });
 
-  if (res.status === 401) {
+  // A 401 from the login endpoint is an auth failure (bad credentials / deactivated account),
+  // not an expired session — let it fall through so the backend's real message is shown.
+  if (res.status === 401 && !path.includes('/auth/login')) {
     tokenStore.clear();
-    if (!path.includes('/auth/login')) window.location.href = '/login';
+    window.location.href = '/login';
     throw new ApiError('Session expired. Please log in again.', 401);
   }
 

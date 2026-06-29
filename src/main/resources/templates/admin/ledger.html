@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <script>(function(){try{var t=localStorage.getItem('fw-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}}());</script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlexiWork Admin — Ledger</title>
+  <style th:utext="${adminCss}"></style>
+</head>
+<body>
+<div class="app">
+  <div th:replace="~{admin/fragments :: sidebar('ledger')}"></div>
+  <main class="main"><div class="content">
+
+    <div th:replace="~{admin/fragments :: pageHeader('Ledger', 'Full directory of registered workers and companies')}"></div>
+
+    <div class="ledger-tabs">
+      <a th:href="@{/admin/ledger(type='workers')}" th:classappend="${type == 'workers'} ? ' active'">Workers</a>
+      <a th:href="@{/admin/ledger(type='companies')}" th:classappend="${type == 'companies'} ? ' active'">Companies</a>
+    </div>
+
+    <form class="filter-bar" method="get" th:action="@{/admin/ledger}">
+      <input type="hidden" name="type" th:value="${type}"/>
+
+      <input type="text" name="search" placeholder="Search by name / NIC / BR number…" th:value="${search}"/>
+
+      <select name="status">
+        <option value="">All statuses</option>
+        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == status}"></option>
+      </select>
+
+      <select name="district">
+        <option value="">All districts</option>
+        <option th:each="d : ${districts}" th:value="${d}" th:text="${d}" th:selected="${d == district}"></option>
+      </select>
+
+      <select name="sortField">
+        <option value="name" th:selected="${sortField == 'name'}">Sort: Name</option>
+        <option value="district" th:selected="${sortField == 'district'}">Sort: District</option>
+        <option value="status" th:selected="${sortField == 'status'}">Sort: Status</option>
+        <option value="created" th:selected="${sortField == 'created'}">Sort: Registered</option>
+      </select>
+
+      <select name="sortDir">
+        <option value="asc" th:selected="${sortDir == 'asc'}">Ascending</option>
+        <option value="desc" th:selected="${sortDir == 'desc'}">Descending</option>
+      </select>
+
+      <button class="btn btn-primary" type="submit">Apply</button>
+      <a class="btn-clear" th:href="@{/admin/ledger(type=${type})}">Clear</a>
+    </form>
+
+    <!-- Workers ledger -->
+    <div th:if="${type == 'workers'}">
+      <div class="empty" th:if="${workers.isEmpty()}">No workers match these filters.</div>
+      <div class="table-wrap" th:unless="${workers.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>Name</th><th>NIC</th><th>District</th><th>Status</th><th>Rating</th><th>Registered</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="w : ${workers}">
+            <td style="font-weight:600;" th:text="${w.fullName}">Kamal</td>
+            <td th:text="${w.nicNumber}">1990...</td>
+            <td th:text="${w.district}">COLOMBO</td>
+            <td><span class="badge" th:classappend="${#strings.toLowerCase(w.status)}" th:text="${w.status}">PENDING</span></td>
+            <td th:text="${#numbers.formatDecimal(w.ratingAverage, 1, 1)}">0.0</td>
+            <td th:text="${w.createdAt}">2026-01-01T00:00:00Z</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Companies ledger -->
+    <div th:if="${type == 'companies'}">
+      <div class="empty" th:if="${companies.isEmpty()}">No companies match these filters.</div>
+      <div class="table-wrap" th:unless="${companies.isEmpty()}">
+        <table>
+          <thead>
+          <tr><th>Company</th><th>BR Number</th><th>District</th><th>Status</th><th>Suspended</th><th>Registered</th></tr>
+          </thead>
+          <tbody>
+          <tr th:each="c : ${companies}">
+            <td style="font-weight:600;" th:text="${c.companyName}">ACME</td>
+            <td th:text="${c.brNumber}">PV-000</td>
+            <td th:text="${c.district}">COLOMBO</td>
+            <td><span class="badge" th:classappend="${#strings.toLowerCase(c.status)}" th:text="${c.status}">PENDING</span></td>
+            <td>
+              <span class="badge" th:classappend="${c.suspended} ? 'rejected' : 'verified'"
+                    th:text="${c.suspended} ? 'Suspended' : 'Active'">Active</span>
+            </td>
+            <td th:text="${c.createdAt}">2026-01-01T00:00:00Z</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div></main>
+</div>
+</body>
+</html>

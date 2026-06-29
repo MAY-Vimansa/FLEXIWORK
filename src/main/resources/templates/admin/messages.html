@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <script>(function(){try{var t=localStorage.getItem('fw-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}}());</script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlexiWork Admin — Messages</title>
+  <style th:utext="${adminCss}"></style>
+</head>
+<body>
+<div class="app">
+  <div th:replace="~{admin/fragments :: sidebar('messages')}"></div>
+  <main class="main"><div class="content">
+
+    <div th:replace="~{admin/fragments :: pageHeader('Messages', 'Contact-us submissions from the public site')}"></div>
+
+    <div class="empty" th:if="${messages.isEmpty()}">No messages yet.</div>
+
+    <div class="table-wrap" th:unless="${messages.isEmpty()}">
+      <table>
+        <thead>
+        <tr><th>Status</th><th>Topic</th><th>From</th><th>Contact</th><th>Message</th><th>Received</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="m : ${messages}" class="msg-row"
+            th:attr="data-id=${m.id},data-topic=${m.topic},data-name=${m.firstName + ' ' + m.lastName},data-phone=${m.phone},data-email=${m.email},data-message=${m.message},data-created=${m.createdAt},data-read=${m.read}">
+          <td><span class="badge" th:classappend="${m.read} ? 'verified' : 'pending'" th:text="${m.read} ? 'Read' : 'New'">New</span></td>
+          <td th:text="${m.topic}">Job Application</td>
+          <td style="font-weight:600;" th:text="${m.firstName + ' ' + m.lastName}">Kasun Perera</td>
+          <td>
+            <div th:text="${m.phone}">0712345678</div>
+            <div style="color:var(--text-muted);font-size:12.5px;" th:if="${m.email != null and !m.email.isBlank()}" th:text="${m.email}">kasun@example.com</div>
+          </td>
+          <td class="msg-preview" th:text="${m.message}">Message body…</td>
+          <td th:text="${m.createdAt}">2026-06-20T10:00:00Z</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div></main>
+</div>
+
+<!-- Message detail popup -->
+<div class="modal-backdrop" id="fw-msg-backdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <span class="badge" id="fw-msg-status">New</span>
+        <span id="fw-msg-topic" style="margin-left:8px;font-weight:700;"></span>
+      </div>
+      <button type="button" class="modal-close" id="fw-msg-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field"><span class="modal-label">From</span><span id="fw-msg-name"></span></div>
+      <div class="modal-field"><span class="modal-label">Phone</span><span id="fw-msg-phone"></span></div>
+      <div class="modal-field" id="fw-msg-email-row"><span class="modal-label">Email</span><span id="fw-msg-email"></span></div>
+      <div class="modal-field"><span class="modal-label">Received</span><span id="fw-msg-created"></span></div>
+      <div class="modal-message" id="fw-msg-body"></div>
+    </div>
+    <div class="modal-footer">
+      <form method="post" th:action="@{/admin/messages/0/read}" id="fw-msg-read-form">
+        <input type="hidden" name="_method" value="put"/>
+        <button type="submit" class="btn-tick" id="fw-msg-tick">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Mark as read
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var backdrop = document.getElementById('fw-msg-backdrop');
+  var form = document.getElementById('fw-msg-read-form');
+  var tick = document.getElementById('fw-msg-tick');
+
+  function open(row) {
+    var read = row.getAttribute('data-read') === 'true';
+    document.getElementById('fw-msg-status').textContent = read ? 'Read' : 'New';
+    document.getElementById('fw-msg-status').className = 'badge ' + (read ? 'verified' : 'pending');
+    document.getElementById('fw-msg-topic').textContent = row.getAttribute('data-topic');
+    document.getElementById('fw-msg-name').textContent = row.getAttribute('data-name');
+    document.getElementById('fw-msg-phone').textContent = row.getAttribute('data-phone');
+    var email = row.getAttribute('data-email');
+    document.getElementById('fw-msg-email-row').style.display = email ? '' : 'none';
+    document.getElementById('fw-msg-email').textContent = email || '';
+    document.getElementById('fw-msg-created').textContent = row.getAttribute('data-created');
+    document.getElementById('fw-msg-body').textContent = row.getAttribute('data-message');
+
+    form.action = '/admin/messages/' + row.getAttribute('data-id') + '/read';
+    tick.style.display = read ? 'none' : '';
+
+    backdrop.classList.add('open');
+  }
+  function close() { backdrop.classList.remove('open'); }
+
+  document.querySelectorAll('.msg-row').forEach(function(row){
+    row.addEventListener('click', function(){ open(row); });
+  });
+  document.getElementById('fw-msg-close').addEventListener('click', close);
+  backdrop.addEventListener('click', function(e){ if (e.target === backdrop) close(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${title} + ' — FlexiWork'">Error — FlexiWork</title>
+  <style th:utext="${adminCss}"></style>
+  <style>
+    .err-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .err-card { max-width: 460px; text-align: center; background: var(--surface, #fff); border: 1px solid var(--border, #e5e5e5); border-radius: 14px; padding: 40px 32px; }
+    .err-code { font-size: 13px; font-weight: 700; letter-spacing: .05em; color: #EB1700; text-transform: uppercase; margin-bottom: 10px; }
+    .err-title { font-size: 22px; font-weight: 700; margin: 0 0 10px; color: var(--text, #1a1a1a); }
+    .err-message { color: var(--text-muted, #666); font-size: 14.5px; line-height: 1.5; margin-bottom: 26px; }
+    .err-link { display: inline-block; padding: 10px 22px; border-radius: 8px; background: #EB1700; color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; }
+  </style>
+</head>
+<body class="al-body">
+  <div class="err-wrap">
+    <div class="err-card">
+      <div class="err-code" th:text="'Error ' + ${status}">Error</div>
+      <h1 class="err-title" th:text="${title}">Something went wrong</h1>
+      <p class="err-message" th:text="${message}">An unexpected error occurred.</p>
+      <a class="err-link" href="/admin">Back to dashboard</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+# Production profile overrides.
+# Activate with: --spring.profiles.active=prod
+#
+# The key academic requirement satisfied here is hardened session cookies:
+# HttpOnly + Secure + SameSite=strict.
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: true
+        same-site: strict
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate     # never auto-mutate the schema in production
+    show-sql: false
+  thymeleaf:
+    cache: true
+
+flexiwork:
+  whatsapp:
+    enabled: true            # real Meta WhatsApp Cloud API calls in prod
+
+# Swagger/OpenAPI is handy for dev but is an unauthenticated information leak in production.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    com.flexiwork: WARN

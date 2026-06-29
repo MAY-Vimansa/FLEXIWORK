@@ -18,7 +18,8 @@ import java.util.List;
 /**
  * Company-owner management of staff sub-accounts (one ACTIVE guard + one ACTIVE poster at a time).
  * Deactivating a staff member frees their role slot — sub-account rows are never deleted (kept for
- * audit/history), so a replacement must use a different email. Staff are always scoped to the
+ * audit/history). Re-adding the same email reactivates that deactivated row (so the owner can reuse
+ * the address); a different email simply creates a fresh row. Staff are always scoped to the
  * owner's company via {@code parentCompany}, resolved from the authenticated owner.
  */
 @Service
@@ -42,9 +43,27 @@ public class StaffService {
             throw new BusinessException("Staff role must be a guard or a poster");
         }
         CompanyProfile company = currentUserService.requireActingCompany();
-        if (userRepository.existsByEmail(req.email())) {
-            throw new BusinessException("An account with this email already exists");
+
+        // An email already used by a *deactivated* staff member of this company is reused by
+        // reactivating that row (audit history is preserved). Active accounts, or emails owned by
+        // someone else / another company, still collide.
+        User existing = userRepository.findByEmail(req.email()).orElse(null);
+        if (existing != null) {
+            boolean reusableSeat = !existing.isActive()
+                    && existing.getParentCompany() != null
+                    && existing.getParentCompany().getId().equals(company.getId());
+            if (!reusableSeat) {
+                throw new BusinessException("An account with this email already exists");
+            }
+            if (userRepository.countByParentCompanyAndRoleAndActiveTrue(company, req.role()) >= 1) {
+                throw new BusinessException("You can only create one " + label(req.role()) + " account");
+            }
+            existing.setPassword(passwordEncoder.encode(req.tempPassword()));
+            existing.setRole(req.role());
+            existing.setActive(true);
+            return toResponse(userRepository.save(existing));
         }
+
         if (userRepository.countByParentCompanyAndRoleAndActiveTrue(company, req.role()) >= 1) {
             throw new BusinessException("You can only create one " + label(req.role()) + " account");
         }

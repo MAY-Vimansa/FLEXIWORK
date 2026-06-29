@@ -202,6 +202,7 @@ export default function RoleChoice() {
               </ul>
 
               <button type="button" className="rc-card-btn-red" onClick={(e) => { e.stopPropagation(); navigate('/register/worker'); }} style={{
+                marginTop: 'auto',
                 width: '100%', padding: '14px 0', borderRadius: 12, border: 'none',
                 background: '#EB1700', color: '#fff',
                 fontWeight: 800, fontSize: 15, cursor: 'pointer',
@@ -232,7 +233,7 @@ export default function RoleChoice() {
                   width: 52, height: 52, borderRadius: 14,
                   background: '#F3F4F6', display: 'grid', placeItems: 'center',
                 }}>
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="rc-company-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                     <polyline points="9 22 9 12 15 12 15 22"/>
                   </svg>
@@ -273,6 +274,7 @@ export default function RoleChoice() {
               </ul>
 
               <button type="button" className="rc-card-btn-dark" onClick={(e) => { e.stopPropagation(); navigate('/register/company'); }} style={{
+                marginTop: 'auto',
                 width: '100%', padding: '14px 0', borderRadius: 12, border: 'none',
                 background: '#1A1A1A', color: '#fff',
                 fontWeight: 800, fontSize: 15, cursor: 'pointer',

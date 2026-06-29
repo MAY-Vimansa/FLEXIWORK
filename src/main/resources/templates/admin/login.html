@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <script>(function(){try{var t=localStorage.getItem('fw-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}}());</script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlexiWork Admin — Sign In</title>
+  <style th:utext="${adminCss}"></style>
+</head>
+<body class="al-body">
+
+<div class="al-wrap">
+
+  <!-- ── Left decorative panel ── -->
+  <div class="al-left">
+    <div class="al-left-inner">
+
+      <div class="al-logo">
+        <div class="al-logo-icon">FW</div>
+        <span class="al-logo-text">Flexi<span>Work</span></span>
+      </div>
+
+      <div class="al-headline">
+        <h1>Admin<br/>Console</h1>
+        <p>Manage workers, companies, jobs and payments from a single secure dashboard.</p>
+      </div>
+
+      <ul class="al-features">
+        <li>
+          <div class="al-feat-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          Worker &amp; company verification
+        </li>
+        <li>
+          <div class="al-feat-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+          </div>
+          Payments &amp; commission tracking
+        </li>
+        <li>
+          <div class="al-feat-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          Real-time dashboard analytics
+        </li>
+      </ul>
+
+    </div>
+  </div>
+
+  <!-- ── Right form panel ── -->
+  <div class="al-right">
+    <div class="al-form-wrap">
+
+      <div class="al-admin-badge">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Secure Admin Access
+      </div>
+
+      <h2 class="al-title">Welcome back</h2>
+      <p class="al-sub">Sign in to your admin account to continue.</p>
+
+      <div class="al-alert al-alert-error" th:if="${param.error}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        Invalid email or password. Please try again.
+      </div>
+      <div class="al-alert al-alert-ok" th:if="${param.logout}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        You've been signed out successfully.
+      </div>
+
+      <form th:action="@{/login}" method="post" class="al-form">
+
+        <div class="al-field">
+          <label for="username">Email address</label>
+          <div class="al-input-wrap">
+            <span class="al-input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </span>
+            <input type="email" id="username" name="username" placeholder="admin@flexiwork.lk" required autofocus/>
+          </div>
+        </div>
+
+        <div class="al-field">
+          <label for="password">Password</label>
+          <div class="al-input-wrap">
+            <span class="al-input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input type="password" id="password" name="password" placeholder="••••••••" required/>
+          </div>
+        </div>
+
+        <button type="submit" class="al-submit">
+          Sign in to Admin Console
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+
+      </form>
+
+      <p class="al-footer">FlexiWork Admin &copy; 2025 &mdash; Authorized access only</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

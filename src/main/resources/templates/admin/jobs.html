@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <script>(function(){try{var t=localStorage.getItem('fw-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}}());</script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlexiWork Admin — Jobs</title>
+  <style th:utext="${adminCss}"></style>
+</head>
+<body>
+<div class="app">
+  <div th:replace="~{admin/fragments :: sidebar('jobs')}"></div>
+  <main class="main"><div class="content">
+
+    <div th:replace="~{admin/fragments :: pageHeader('Jobs', 'All job posts on the platform')}"></div>
+
+    <div class="empty" th:if="${jobs.isEmpty()}">No jobs posted yet.</div>
+
+    <div class="table-wrap" th:unless="${jobs.isEmpty()}">
+      <table>
+        <thead>
+        <tr><th>Title</th><th>Company</th><th>District</th><th>Date</th><th>Wage</th><th>Slots</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="j : ${jobs}">
+          <td style="font-weight:600;" th:text="${j.title}">Waiter</td>
+          <td th:text="${j.company.companyName}">ABC Hotels</td>
+          <td th:text="${j.district}">COLOMBO</td>
+          <td th:text="${j.jobDate}">2026-07-01</td>
+          <td th:text="${'LKR ' + j.dailyWage}">3500</td>
+          <td th:text="${j.workersAccepted} + ' / ' + ${j.workersNeeded}">0 / 5</td>
+          <td><span class="badge" th:classappend="${#strings.toLowerCase(j.status)}" th:text="${j.status}">OPEN</span></td>
+          <td>
+            <form class="inline" method="post" th:action="@{'/admin/jobs/' + ${j.id}}"
+                  th:if="${j.status.name() != 'CANCELLED' and j.status.name() != 'COMPLETED'}">
+              <input type="hidden" name="_method" value="delete"/>
+              <button class="btn btn-danger" type="submit">Cancel</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div></main>
+</div>
+</body>
+</html>

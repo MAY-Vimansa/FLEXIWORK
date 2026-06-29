@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <script>(function(){try{var t=localStorage.getItem('fw-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}}());</script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlexiWork Admin — Dashboard</title>
+  <style th:utext="${adminCss}"></style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <div th:replace="~{admin/fragments :: sidebar('dashboard')}"></div>
+  <main class="main"><div class="content">
+
+    <div th:replace="~{admin/fragments :: pageHeader('Dashboard', 'Overview of platform activity')}"></div>
+
+    <!-- Stat cards -->
+    <div class="stat-cards">
+
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon red">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4" fill="#EB1700"/>
+              <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#EB1700" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="stat-pct">Active</span>
+        </div>
+        <div class="stat-value" th:text="${stats.totalWorkers()}">0</div>
+        <div class="stat-label">Total Workers</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon blue">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="9" width="18" height="13" rx="2" fill="#4285F4"/>
+              <path d="M8 9V6.5a4 4 0 018 0V9" stroke="#4285F4" stroke-width="2" stroke-linecap="round"/>
+              <rect x="10" y="14" width="4" height="8" rx="1" fill="white"/>
+            </svg>
+          </div>
+          <span class="stat-pct" style="background:#EAF1FF;color:#4285F4;">Verified</span>
+        </div>
+        <div class="stat-value" th:text="${stats.totalCompanies()}">0</div>
+        <div class="stat-label">Companies Onboarded</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon green">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="#1E7E34" stroke-width="2"/>
+              <path d="M16 2v4M8 2v4M3 10h18" stroke="#1E7E34" stroke-width="2" stroke-linecap="round"/>
+              <path d="M8 15h4M8 18h8" stroke="#1E7E34" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="stat-pct" style="background:#E6F4EA;color:#1E7E34;">Posted</span>
+        </div>
+        <div class="stat-value" th:text="${stats.totalJobs()}">0</div>
+        <div class="stat-label">Total Job Posts</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon orange">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <rect x="2" y="5" width="20" height="14" rx="2.5" fill="none" stroke="#E65100" stroke-width="2"/>
+              <rect x="2" y="9" width="20" height="3" fill="#E65100" fill-opacity=".2"/>
+              <rect x="5" y="13" width="5" height="2" rx="1" fill="#E65100"/>
+            </svg>
+          </div>
+          <span class="stat-pct" style="background:#FFF3E0;color:#E65100;">Earned</span>
+        </div>
+        <div class="stat-value lg">
+          <span style="font-size:14px;font-weight:700;color:#767676;margin-right:3px;">LKR</span><span th:text="${stats.commissionEarned()}">0</span>
+        </div>
+        <div class="stat-label">Commission Earned</div>
+      </div>
+
+    </div>
+
+    <!-- Dashboard grid: chart + quick actions -->
+    <div class="dashboard-grid">
+
+      <!-- Growth / trend chart -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Growth Over Time</h3>
+          <div class="chart-subtitle">Job posts scheduled per date</div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#EB1700;"></span> Job Posts
+          </div>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="jobsChart"></canvas></div>
+      </div>
+
+      <!-- Quick actions + pending alerts -->
+      <div class="quick-card">
+        <h3>Quick Actions</h3>
+        <div class="card-subtitle">Frequently used admin tools</div>
+
+        <div class="quick-grid">
+          <a class="quick-btn" th:href="@{/admin/companies}">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="#EB1700" stroke-width="2"/>
+              <line x1="12" y1="7" x2="12" y2="17" stroke="#EB1700" stroke-width="2" stroke-linecap="round"/>
+              <line x1="7" y1="12" x2="17" y2="12" stroke="#EB1700" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Add Company
+          </a>
+          <a class="quick-btn" th:href="@{/admin/workers}">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="#1E7E34" stroke-width="2"/>
+              <path d="M8 12l3 3 5-5" stroke="#1E7E34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Verify Workers
+          </a>
+          <a class="quick-btn" th:href="@{/admin/companies}">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="#E65100" stroke-width="2"/>
+              <path d="M8 12l3 3 5-5" stroke="#E65100" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Verify Companies
+          </a>
+          <a class="quick-btn" th:href="@{/admin/payments}">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="#4285F4" stroke-width="2"/>
+              <path d="M8 12h8M12 8v8" stroke="#4285F4" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Payments
+          </a>
+        </div>
+
+        <!-- Pending alerts -->
+        <div class="recent-activity">
+          <h4>Pending Actions</h4>
+          <div th:if="${stats.pendingWorkers() == 0 and stats.pendingCompanies() == 0}" class="activity-empty">
+            No pending verifications.
+          </div>
+          <div th:if="${stats.pendingWorkers() > 0}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#FFF0EE;border-radius:10px;margin-bottom:8px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#EB1700;flex-shrink:0;"></span>
+            <span style="font-size:13px;font-weight:600;color:#191919;">
+              <span th:text="${stats.pendingWorkers()}">0</span> worker(s) awaiting verification
+            </span>
+            <a th:href="@{/admin/workers}" style="margin-left:auto;font-size:12px;font-weight:700;color:#EB1700;text-decoration:none;">Review</a>
+          </div>
+          <div th:if="${stats.pendingCompanies() > 0}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#FFF0EE;border-radius:10px;margin-bottom:8px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#EB1700;flex-shrink:0;"></span>
+            <span style="font-size:13px;font-weight:600;color:#191919;">
+              <span th:text="${stats.pendingCompanies()}">0</span> company(ies) awaiting verification
+            </span>
+            <a th:href="@{/admin/companies}" style="margin-left:auto;font-size:12px;font-weight:700;color:#EB1700;text-decoration:none;">Review</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div></main>
+</div>
+
+<script th:inline="javascript">
+  const LABELS = /*[[${trend.labels()}]]*/ [];
+  const COUNTS = /*[[${trend.counts()}]]*/ [];
+
+  const ctx = document.getElementById('jobsChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 260);
+  grad.addColorStop(0, 'rgba(235,23,0,0.18)');
+  grad.addColorStop(1, 'rgba(235,23,0,0)');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: LABELS,
+      datasets: [{
+        label: 'Job Posts',
+        data: COUNTS,
+        backgroundColor: '#EB1700',
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#191919', cornerRadius: 8, padding: 10 }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0, color: '#767676', font: { size: 12 } },
+          grid: { color: '#F0F0F0' }
+        },
+        x: {
+          ticks: { color: '#767676', font: { size: 12 } },
+          grid: { display: false }
+        }
+      },
+      maintainAspectRatio: false,
+      borderRadius: 6,
+    }
+  });
+</script>
+</body>
+</html>

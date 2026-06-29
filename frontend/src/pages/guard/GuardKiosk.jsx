@@ -6,7 +6,8 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 
 function avatarUrl(path) {
   if (!path) return null;
-  return path.startsWith('http') ? path : `/api/files/${path}`;
+  const BACKEND_URL = import.meta.env.VITE_API_URL || '';
+  return path.startsWith('http') ? path : `${BACKEND_URL}/api/files/${path}`;
 }
 
 // ── States: idle → scanning → preview → success | error ──────────────────────
