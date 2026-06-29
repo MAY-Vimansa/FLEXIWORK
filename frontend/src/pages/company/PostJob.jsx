@@ -50,6 +50,11 @@ export default function PostJob() {
   }
   function fe(n) { return fieldErrors[n] && <div className="field-error">{fieldErrors[n]}</div>; }
 
+  function setWorkers(n) {
+    const clamped = Math.max(1, Math.min(500, n));
+    setForm((f) => ({ ...f, workersNeeded: clamped }));
+  }
+
   async function submit(e) {
     e.preventDefault(); setErr(null); setFieldErrors({}); setBusy(true);
     try {
@@ -81,51 +86,159 @@ export default function PostJob() {
     } finally { setBusy(false); }
   }
 
+  // ── Live-preview derived display values (presentational only) ──
+  const wagePreview = (() => {
+    const n = parseInt(form.dailyWage, 10);
+    return form.dailyWage && !Number.isNaN(n) ? n.toLocaleString('en-US') : '—';
+  })();
+  const datePreview = (() => {
+    if (!form.jobDate) return 'Pick a date';
+    const dt = new Date(form.jobDate + 'T00:00:00');
+    return Number.isNaN(dt.getTime()) ? form.jobDate : dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  })();
+  const categoryLabel = form.category ? form.category.replaceAll('_', ' ') : 'Category';
+  const districtLabel = form.district ? form.district.replaceAll('_', ' ') : 'District';
+  const hoursPreview = `${form.startTime || '—'} – ${form.endTime || '—'}`;
+
   return (
-    <div className="page page-narrow">
-      <h1>Post a job</h1>
-      {err && <div className="form-error mt-16">{err}</div>}
-      <form className="card mt-16" onSubmit={submit}>
-        <div className="field"><label>Title</label>
-          <input className="input" required maxLength={120} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />{fe('title')}</div>
-        <div className="field"><label>Description</label>
-          <textarea className="input" required maxLength={2000} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />{fe('description')}</div>
-        <div className="row">
-          <div className="field" style={{ flex: 1 }}><label>Category</label>
-            <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-              <option value="">Select…</option>
-              {categories.map((c) => <option key={c} value={c}>{c.replaceAll('_', ' ')}</option>)}
-            </select>{fe('category')}</div>
-          <div className="field" style={{ flex: 1 }}><label>District</label>
-            <select className="input" value={form.district} onChange={(e) => onDistrict(e.target.value)}>
-              <option value="">Select…</option>
-              {districts.map((d) => <option key={d.name} value={d.name}>{d.name.replaceAll('_', ' ')}</option>)}
-            </select>{fe('district')}</div>
+      <div className="page pj">
+        <div className="pj-head">
+          <h1 className="pj-title">Post a job<span className="pj-dot">.</span></h1>
+          <p className="pj-subtitle">Fill in the details — your listing previews on the right as you type.</p>
         </div>
-        <div className="row">
-          <div className="field" style={{ flex: 1 }}><label>Date</label>
-            <input className="input" type="date" required min={new Date().toISOString().slice(0, 10)} value={form.jobDate} onChange={(e) => setForm({ ...form, jobDate: e.target.value })} />{fe('jobDate')}</div>
-          <div className="field" style={{ flex: 1 }}><label>Daily wage (LKR)</label>
-            <input className="input" type="number" min="0.01" step="0.01" value={form.dailyWage} onChange={(e) => setForm({ ...form, dailyWage: e.target.value })} />{fe('dailyWage')}</div>
-        </div>
-        <div className="row">
-          <div className="field" style={{ flex: 1 }}><label>Start</label>
-            <input className="input" type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} /></div>
-          <div className="field" style={{ flex: 1 }}><label>End</label>
-            <input className="input" type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} />
-            {form.endTime && form.startTime && form.endTime <= form.startTime &&
-              <p className="muted">Ends next day (overnight shift)</p>}</div>
-          <div className="field" style={{ flex: 1 }}><label>Workers needed</label>
-            <input className="input" type="number" min="1" max="500" value={form.workersNeeded} onChange={(e) => setForm({ ...form, workersNeeded: e.target.value })} />{fe('workersNeeded')}</div>
-        </div>
-        <div className="field"><label>Address line</label>
-          <input className="input" value={form.addressLine} onChange={(e) => setForm({ ...form, addressLine: e.target.value })} />
-          {locating && <p className="muted">Locating…</p>}{fe('addressLine')}</div>
-        <label>Pin the exact location</label>
-        <div className="mt-8"><MapPicker value={pin} center={center} onChange={(lat, lng) => setPin({ lat, lng })} /></div>
-        {pin.lat && <p className="muted mt-8">📍 {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}</p>}
-        <button className="btn btn-primary btn-block mt-16" disabled={busy}>{busy ? 'Posting…' : 'Post job'}</button>
-      </form>
-    </div>
+
+        {err && <div className="form-error mt-16">{err}</div>}
+
+        <form className="pj-grid" onSubmit={submit}>
+          {/* ── Left: form ── */}
+          <div className="pj-card">
+            <div className="pj-eyebrow">The basics</div>
+
+            <div className="pj-field">
+              <label className="pj-label">Title</label>
+              <input className="pj-input" required maxLength={120} placeholder="e.g. Delivery Loader"
+                     value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              {fe('title')}
+            </div>
+
+            <div className="pj-field">
+              <label className="pj-label">Description</label>
+              <textarea className="pj-input pj-textarea" required maxLength={2000} rows={3}
+                        placeholder="Describe the work, requirements, and what to bring."
+                        value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              {fe('description')}
+            </div>
+
+            <div className="pj-row2">
+              <div className="pj-field">
+                <label className="pj-label">Category</label>
+                <select className="pj-input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                  <option value="">Select…</option>
+                  {categories.map((c) => <option key={c} value={c}>{c.replaceAll('_', ' ')}</option>)}
+                </select>
+                {fe('category')}
+              </div>
+              <div className="pj-field">
+                <label className="pj-label">District</label>
+                <select className="pj-input" value={form.district} onChange={(e) => onDistrict(e.target.value)}>
+                  <option value="">Select…</option>
+                  {districts.map((d) => <option key={d.name} value={d.name}>{d.name.replaceAll('_', ' ')}</option>)}
+                </select>
+                {fe('district')}
+              </div>
+            </div>
+
+            <div className="pj-divider" />
+            <div className="pj-eyebrow">Schedule &amp; pay</div>
+
+            <div className="pj-row2">
+              <div className="pj-field">
+                <label className="pj-label">Date</label>
+                <input className="pj-input" type="date" required min={new Date().toISOString().slice(0, 10)}
+                       value={form.jobDate} onChange={(e) => setForm({ ...form, jobDate: e.target.value })} />
+                {fe('jobDate')}
+              </div>
+              <div className="pj-field">
+                <label className="pj-label">Daily wage · LKR</label>
+                <input className="pj-input" type="number" min="0.01" step="0.01" placeholder="2,700"
+                       value={form.dailyWage} onChange={(e) => setForm({ ...form, dailyWage: e.target.value })} />
+                {fe('dailyWage')}
+              </div>
+            </div>
+
+            <div className="pj-row3">
+              <div className="pj-field">
+                <label className="pj-label">Start</label>
+                <input className="pj-input" type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} />
+              </div>
+              <div className="pj-field">
+                <label className="pj-label">End</label>
+                <input className="pj-input" type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} />
+                {form.endTime && form.startTime && form.endTime <= form.startTime &&
+                    <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>Ends next day (overnight shift)</p>}
+              </div>
+              <div className="pj-field">
+                <label className="pj-label">Workers</label>
+                <div className="pj-stepper">
+                  <button type="button" className="pj-step pj-step-minus" onClick={() => setWorkers(Number(form.workersNeeded) - 1)} aria-label="Fewer workers">−</button>
+                  <span className="pj-step-val">{form.workersNeeded}</span>
+                  <button type="button" className="pj-step pj-step-plus" onClick={() => setWorkers(Number(form.workersNeeded) + 1)} aria-label="More workers">+</button>
+                </div>
+                {fe('workersNeeded')}
+              </div>
+            </div>
+
+            <div className="pj-divider" />
+            <div className="pj-eyebrow">Location</div>
+
+            <div className="pj-field">
+              <label className="pj-label">Address line</label>
+              <input className="pj-input" placeholder="88 Puttalam Road, Kurunegala"
+                     value={form.addressLine} onChange={(e) => setForm({ ...form, addressLine: e.target.value })} />
+              {locating && <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>Locating…</p>}
+              {fe('addressLine')}
+            </div>
+
+            <div className="pj-map">
+              <MapPicker value={pin} center={center} onChange={(lat, lng) => setPin({ lat, lng })} />
+            </div>
+            {pin.lat && <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>📍 {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}</p>}
+          </div>
+
+          {/* ── Right: live preview ── */}
+          <div className="pj-preview">
+            <div className="pj-preview-bar">Live preview</div>
+            <div className="pj-preview-body">
+              <div className={`pj-preview-title ${form.title ? '' : 'is-empty'}`}>{form.title || 'Your job title'}</div>
+
+              <div className="pj-chips">
+                <span className="pj-chip pj-chip-red">{categoryLabel}</span>
+                <span className="pj-chip pj-chip-gray">{districtLabel}</span>
+              </div>
+
+              <div className="pj-divider" />
+
+              <div className="pj-figures">
+                <div>
+                  <div className="pj-fig-label">Daily wage · LKR</div>
+                  <div className="pj-fig-value pj-fig-red">{wagePreview}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="pj-fig-label">Workers</div>
+                  <div className="pj-fig-value">{form.workersNeeded}</div>
+                </div>
+              </div>
+
+              <div className="pj-detail-rows">
+                <div className="pj-detail"><span>Date</span><span className="pj-detail-val">{datePreview}</span></div>
+                <div className="pj-detail"><span>Hours</span><span className="pj-detail-val">{hoursPreview}</span></div>
+                <div className="pj-detail"><span>Address</span><span className="pj-detail-val pj-detail-addr">{form.addressLine || 'Not set'}</span></div>
+              </div>
+
+              <button className="pj-submit" disabled={busy}>{busy ? 'Posting…' : 'Post job'}</button>
+            </div>
+          </div>
+        </form>
+      </div>
   );
 }
