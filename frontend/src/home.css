@@ -111,8 +111,13 @@
 .home .marquee-head { text-align: center; font-size: 13px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 26px; }
 .home .marquee { position: relative; -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
 .home .marquee-track { display: flex; align-items: center; gap: 50px; width: max-content; animation: scrollX 34s linear infinite; }
-.home .m-logo-img { height: 40px; width: auto; object-fit: contain; flex-shrink: 0; }
+.home .m-logo-img { height: 40px; width: auto; object-fit: contain; flex-shrink: 0; cursor: pointer; transition: transform .25s ease, filter .25s ease, opacity .25s ease; }
 @keyframes scrollX { to { transform: translateX(-50%); } }
+
+/* Pause the marquee and highlight a logo on hover */
+.home .marquee-track:hover { animation-play-state: paused; }
+.home .marquee-track:hover .m-logo-img { opacity: .35; filter: grayscale(100%); }
+.home .marquee-track:hover .m-logo-img:hover { opacity: 1; filter: none; transform: scale(1.18); }
 
 @media (max-width: 1000px) {
   .home .grid { grid-template-columns: repeat(2, 1fr); }
