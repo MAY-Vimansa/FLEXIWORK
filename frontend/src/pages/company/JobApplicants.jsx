@@ -33,7 +33,7 @@ export default function JobApplicants() {
             <div className="row">
               <div className="logo">
                 {a.profilePhotoPath
-                  ? <img src={`/api/files/${a.profilePhotoPath}`} alt="" style={{ width: '100%', height: '100%', borderRadius: 10, objectFit: 'cover' }} />
+                  ? <img src={a.profilePhotoPath.startsWith('http') ? a.profilePhotoPath : `/api/files/${a.profilePhotoPath}`} alt="" style={{ width: '100%', height: '100%', borderRadius: 10, objectFit: 'cover' }} />
                   : a.workerName?.[0]}
               </div>
               <div>
