@@ -1,22 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../../api';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { PASSWORD_RE, EMAIL_RE } from '../../validation';
 
-function EyeIcon({ open }) {
-  return open ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  ) : (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
+const ROLES = [
+  { value: 'COMPANY_GUARD', label: 'Guard', hint: 'Scans attendance', letter: 'G' },
+  { value: 'COMPANY_POSTER', label: 'Poster', hint: 'Manages jobs', letter: 'P' },
+];
 
 // Owner creates/deactivates guard + poster sub-accounts (max one each).
 export default function Staff() {
@@ -29,6 +19,7 @@ export default function Staff() {
   const [confirmDeactivateId, setConfirmDeactivateId] = useState(null);
   const [createdCred, setCreatedCred] = useState(null);
   const [copied, setCopied] = useState(null);
+  const emailRef = useRef(null);
 
   function load() { api.get('/api/company/staff').then(setStaff).catch(() => setStaff([])); }
   useEffect(load, []);
@@ -57,11 +48,30 @@ export default function Staff() {
     setCopied(field);
     setTimeout(() => setCopied(null), 1500);
   }
+  function assign(role) {
+    setForm((f) => ({ ...f, role }));
+    setErr(null);
+    emailRef.current?.focus();
+    emailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  const activeFor = (role) => Array.isArray(staff) ? staff.find((s) => s.role === role && s.active) : null;
+  const filled = ROLES.reduce((n, r) => n + (activeFor(r.value) ? 1 : 0), 0);
+
+  const emailValid = EMAIL_RE.test(form.email);
+  const pwValid = PASSWORD_RE.test(form.tempPassword);
 
   return (
-    <div className="page page-narrow">
-      <h1>Staff</h1>
-      <p className="muted">Create one active guard (scans attendance) and one active poster (manages jobs). Deactivating one frees that role for a replacement.</p>
+    <div className="page st">
+      <div className="st-header">
+        <h1 className="st-title">Staff</h1>
+        <span className="st-seats">{filled} of {ROLES.length} seats filled</span>
+      </div>
+      <p className="st-sub">
+        Keep one active guard (scans attendance) and one active poster (manages jobs).
+        Deactivating a role frees the seat for a replacement.
+      </p>
+
       {err && <div className="form-error mt-16">{err}</div>}
 
       {createdCred && (
@@ -90,49 +100,115 @@ export default function Staff() {
         </div>
       )}
 
-      <form className="card mt-16" onSubmit={create}>
-        <h3>Add staff</h3>
-        <div className="field mt-16"><label>Role</label>
-          <select className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-            <option value="COMPANY_GUARD">Guard (attendance scanner)</option>
-            <option value="COMPANY_POSTER">Poster (manages jobs)</option>
-          </select></div>
-        <div className="field"><label>Email</label>
-          <input className="input" type="email" maxLength={120} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-          {form.email && !EMAIL_RE.test(form.email) && <div className="field-error">Enter a valid email address</div>}</div>
-        <div className="field">
-          <label>Temporary password</label>
-          <div className="pwd-wrap">
-            <input className="input" type={showPw ? 'text' : 'password'} maxLength={13} value={form.tempPassword} onChange={(e) => setForm({ ...form, tempPassword: e.target.value })} required />
-            <button type="button" className="eye-btn" onClick={() => setShowPw(v => !v)} aria-label={showPw ? 'Hide password' : 'Show password'}>
-              <EyeIcon open={showPw} />
-            </button>
-          </div>
-          {form.tempPassword && !PASSWORD_RE.test(form.tempPassword) &&
-            <div className="field-error">Must be 8-13 letters/numbers, with at least one letter and one number</div>}
-        </div>
-        <button className="btn btn-primary btn-block" disabled={busy || !EMAIL_RE.test(form.email) || !PASSWORD_RE.test(form.tempPassword)}>{busy ? 'Creating…' : 'Create staff account'}</button>
-      </form>
+      <div className="st-grid">
+        {/* Add staff */}
+        <form className="st-card" onSubmit={create}>
+          <h3 className="st-card-title">Add staff</h3>
 
-      <div className="card mt-16">
-        <h3>Existing staff</h3>
-        {!staff ? <div className="skeleton skel-card" /> : staff.length === 0 ? (
-          <p className="muted mt-8">No staff accounts yet.</p>
-        ) : (
-          <table className="mt-8">
-            <thead><tr><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-              {staff.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.email}</td>
-                  <td>{s.role.replace('COMPANY_', '')}</td>
-                  <td><span className={`badge ${s.active ? 'OPEN' : 'CANCELLED'}`}>{s.active ? 'ACTIVE' : 'INACTIVE'}</span></td>
-                  <td>{s.active && <button className="btn btn-danger btn-sm" disabled={deactivatingId === s.id} onClick={() => setConfirmDeactivateId(s.id)}>Deactivate</button>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+          <div className="st-field">
+            <label className="st-label">Role</label>
+            <div className="st-roles" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {ROLES.map((r) => {
+                const selected = form.role === r.value;
+                return (
+                  <button
+                    type="button"
+                    key={r.value}
+                    className={`st-role ${selected ? 'is-selected' : ''}`}
+                    onClick={() => setForm({ ...form, role: r.value })}
+                    aria-pressed={selected}
+                  >
+                    <span className={`st-radio ${selected ? 'is-on' : ''}`} />
+                    <span className="st-role-text">
+                      <span className="st-role-name">{r.label}</span>
+                      <span className="st-role-hint">{r.hint}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="st-field">
+            <label className="st-label">Email</label>
+            <input
+              ref={emailRef}
+              className="st-input" type="email" maxLength={120}
+              placeholder="name@lankaharvest.lk"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+            {form.email && !emailValid && <div className="field-error">Enter a valid email address</div>}
+          </div>
+
+          <div className="st-field">
+            <label className="st-label">Temporary password</label>
+            <div className="st-pwd">
+              <input
+                className="st-input" type={showPw ? 'text' : 'password'} maxLength={13}
+                placeholder="Set a temporary password"
+                value={form.tempPassword}
+                onChange={(e) => setForm({ ...form, tempPassword: e.target.value })}
+                required
+              />
+              <button type="button" className="st-show" onClick={() => setShowPw((v) => !v)}>
+                {showPw ? 'HIDE' : 'SHOW'}
+              </button>
+            </div>
+            {form.tempPassword && !pwValid &&
+              <div className="field-error">Must be 8-13 letters/numbers, with at least one letter and one number</div>}
+          </div>
+
+          <button className="st-create" disabled={busy || !emailValid || !pwValid}>
+            {busy ? 'Creating…' : 'Create staff account'}
+          </button>
+        </form>
+
+        {/* Existing staff */}
+        <div className="st-card">
+          <h3 className="st-card-title">Existing staff</h3>
+          <p className="st-card-sub">One seat per role.</p>
+
+          {!staff ? (
+            <div className="skeleton skel-card mt-8" />
+          ) : (
+            <div className="st-seats-list">
+              {ROLES.map((r) => {
+                const acct = activeFor(r.value);
+                if (acct) {
+                  return (
+                    <div key={r.value} className="st-seat">
+                      <div className="st-avatar">{(acct.email || r.letter).charAt(0).toUpperCase()}</div>
+                      <div className="st-seat-body">
+                        <div className="st-seat-email">{acct.email}</div>
+                        <div className="st-seat-meta">
+                          <span className="st-seat-role">{r.label.toUpperCase()}</span>
+                          <span className="badge OPEN">ACTIVE</span>
+                        </div>
+                      </div>
+                      <button
+                        className="st-deactivate"
+                        disabled={deactivatingId === acct.id}
+                        onClick={() => setConfirmDeactivateId(acct.id)}
+                      >Deactivate</button>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={r.value} className="st-seat is-empty">
+                    <div className="st-avatar is-empty">{r.letter}</div>
+                    <div className="st-seat-body">
+                      <div className="st-seat-email is-muted">No active {r.label.toLowerCase()}</div>
+                      <div className="st-seat-empty-hint">Add one to let someone {r.value === 'COMPANY_GUARD' ? 'scan attendance' : 'manage jobs'}.</div>
+                    </div>
+                    <button className="st-assign" onClick={() => assign(r.value)}>Assign</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <ConfirmDialog
