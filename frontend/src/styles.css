@@ -883,6 +883,10 @@ th { color: var(--text-muted); font-weight: 700; font-size: 12px; text-transform
 
 .pj-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
 .pj-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 16px; }
+/* Fields inside a grid row must align at the top — the row provides the spacing,
+   so cancel the per-field top margin (otherwise only the first-of-type resets and
+   the other columns sit 16px lower). */
+.pj-row2 .pj-field, .pj-row3 .pj-field { margin-top: 0; }
 @media (max-width: 520px) { .pj-row2, .pj-row3 { grid-template-columns: 1fr; } }
 
 .pj-divider { height: 1px; background: var(--border); margin: 24px 0 20px; }
