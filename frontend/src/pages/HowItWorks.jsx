@@ -43,7 +43,7 @@ const SERVICES = [
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EB1700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
-    title: 'Mobile App Access <br> (Coming Soon)',
+    title: 'Mobile App Access <br/> (Coming Soon)',
     desc: 'Manage your entire work life from your smartphone. Apply for jobs, track your shifts, view your earnings, and chat with employers — all from the FlexiWork app, available free on Android.',
     tags: ['Android app', 'Push alerts', 'Free forever'],
   },
