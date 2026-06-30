@@ -1,6 +1,7 @@
 package com.flexiwork.dto.application;
 
 import com.flexiwork.entity.enums.ApplicationStatus;
+import com.flexiwork.entity.enums.JobStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,5 +21,6 @@ public record ApplicationResponse(
         BigDecimal dailyWage,
         String mapsLink,
         String qrCodeToken,
-        String qrImageUrl) {
+        String qrImageUrl,
+        JobStatus jobStatus) {
 }
