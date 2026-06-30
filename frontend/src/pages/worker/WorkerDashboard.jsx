@@ -108,7 +108,9 @@ export default function WorkerDashboard() {
         </div>
         <div className="wd-banner-stats">
           <div className="wd-bstat">
-            <div className="wd-bstat-num">{stats?.activeApplications ?? '–'}</div>
+            {/* Count the same in-progress jobs shown under Current Jobs, so the banner stays
+                consistent with the list and excludes completed/cancelled jobs immediately. */}
+            <div className="wd-bstat-num">{activeApps.length}</div>
             <div className="wd-bstat-lbl">Enrolled Jobs</div>
           </div>
           <div className="wd-bstat">
