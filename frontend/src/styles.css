@@ -870,7 +870,7 @@ th { color: var(--text-muted); font-weight: 700; font-size: 12px; text-transform
   color: var(--text-muted); margin-bottom: 8px;
 }
 .pj-input {
-  width: 100%; padding: 13px 15px; border-radius: 12px; border: 1px solid var(--border);
+  width: 100%; height: 48px; padding: 13px 15px; border-radius: 12px; border: 1px solid var(--border);
   background: var(--surface); font-size: 15px; font-family: inherit; color: var(--text);
   transition: border-color .15s, box-shadow .15s, background .15s;
 }
@@ -879,26 +879,30 @@ th { color: var(--text-muted); font-weight: 700; font-size: 12px; text-transform
   outline: none; border-color: var(--primary); background: var(--bg);
   box-shadow: 0 0 0 3px var(--primary-light);
 }
-.pj-textarea { min-height: 84px; resize: vertical; line-height: 1.5; }
+.pj-textarea { height: auto; min-height: 84px; resize: vertical; line-height: 1.5; }
 
 .pj-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
 .pj-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 16px; }
+/* Fields inside a grid row must align at the top — the row provides the spacing,
+   so cancel the per-field top margin (otherwise only the first-of-type resets and
+   the other columns sit 16px lower). */
+.pj-row2 .pj-field, .pj-row3 .pj-field { margin-top: 0; }
 @media (max-width: 520px) { .pj-row2, .pj-row3 { grid-template-columns: 1fr; } }
 
 .pj-divider { height: 1px; background: var(--border); margin: 24px 0 20px; }
 
 /* Workers stepper */
 .pj-stepper {
-  display: inline-flex; align-items: center;
+  display: flex; width: 100%; height: 48px; align-items: center; justify-content: space-between;
   border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;
 }
 .pj-step {
-  width: 42px; height: 46px; border: none; background: transparent; cursor: pointer;
+  flex: 0 0 auto; width: 46px; height: 100%; border: none; background: transparent; cursor: pointer;
   font-size: 22px; font-weight: 700; color: var(--text); font-family: inherit;
   transition: background .15s, color .15s;
 }
 .pj-step:hover { background: var(--primary-light); color: var(--primary); }
-.pj-step-val { min-width: 46px; text-align: center; font-size: 17px; font-weight: 800; }
+.pj-step-val { flex: 1; text-align: center; font-size: 17px; font-weight: 800; }
 
 /* Map: container is the existing .map element inside */
 .pj-map { margin-top: 14px; }

@@ -1,9 +1,8 @@
 package com.flexiwork.controller;
 
 import com.flexiwork.entity.JobPost;
-import com.flexiwork.entity.enums.ApplicationStatus;
 import com.flexiwork.entity.enums.JobStatus;
-import com.flexiwork.repository.ApplicationRepository;
+import com.flexiwork.repository.AttendanceRepository;
 import com.flexiwork.repository.JobPostRepository;
 import com.flexiwork.security.CurrentUserService;
 import com.flexiwork.service.PaymentService;
@@ -25,16 +24,16 @@ import java.math.BigDecimal;
 public class CompanyDashboardController {
 
     private final JobPostRepository jobRepository;
-    private final ApplicationRepository applicationRepository;
+    private final AttendanceRepository attendanceRepository;
     private final PaymentService paymentService;
     private final CurrentUserService currentUserService;
 
     public CompanyDashboardController(JobPostRepository jobRepository,
-                                      ApplicationRepository applicationRepository,
+                                      AttendanceRepository attendanceRepository,
                                       PaymentService paymentService,
                                       CurrentUserService currentUserService) {
         this.jobRepository = jobRepository;
-        this.applicationRepository = applicationRepository;
+        this.attendanceRepository = attendanceRepository;
         this.paymentService = paymentService;
         this.currentUserService = currentUserService;
     }
@@ -51,11 +50,15 @@ public class CompanyDashboardController {
         // CANCELLED is a soft delete, so "Total jobs" counts only live jobs (open + filled +
         // completed). This keeps the strip consistent: total == the non-cancelled buckets.
         long totalJobs = open + filled + completed;
-        long pendingApplicants = jobs.stream()
-                .mapToLong(j -> applicationRepository.countByJobPostAndStatus(j, ApplicationStatus.PENDING))
+        // Workers paid = verified check-ins on COMPLETED (settled) jobs, counted per shift —
+        // one worker who worked 3 completed jobs counts as 3. A job only becomes COMPLETED when
+        // the company settles its commission, so this reflects workers actually hired and paid.
+        long workersPaid = jobs.stream()
+                .filter(j -> j.getStatus() == JobStatus.COMPLETED)
+                .mapToLong(attendanceRepository::countVerifiedByJobPost)
                 .sum();
         BigDecimal outstanding = paymentService.summary().totalOutstanding();
-        return new DashboardResponse(totalJobs, open, filled, completed, cancelled, pendingApplicants, outstanding,
+        return new DashboardResponse(totalJobs, open, filled, completed, cancelled, workersPaid, outstanding,
                 new CompanyInfo(company.getCompanyName(), company.getBrNumber(),
                         company.getDistrict() == null ? null : company.getDistrict().name(),
                         company.getAddressLine(), company.getLogoPath(), company.getStatus().name(),
@@ -64,7 +67,7 @@ public class CompanyDashboardController {
 
     public record DashboardResponse(
             long totalJobs, long openJobs, long filledJobs, long completedJobs, long cancelledJobs,
-            long pendingApplicants, BigDecimal outstandingCommission, CompanyInfo company) {
+            long workersPaid, BigDecimal outstandingCommission, CompanyInfo company) {
     }
 
     public record CompanyInfo(

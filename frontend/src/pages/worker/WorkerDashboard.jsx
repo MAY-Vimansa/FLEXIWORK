@@ -138,7 +138,7 @@ export default function WorkerDashboard() {
       {/* PANELS */}
       <div className="wd-panel">
         {tab === 'home'     && <CurrentJobsPanel apps={activeApps} onRefresh={load} showToast={showToast} />}
-        {tab === 'history'  && <HistoryPanel apps={historyApps} totalEarned={stats?.totalEarned} completedCount={stats?.completedJobs ?? 0} />}
+        {tab === 'history'  && <HistoryPanel apps={historyApps} />}
         {tab === 'profile'  && <ProfilePanel profile={profile} districts={districts} onSaved={p => { setProfile(p); showToast('Profile updated.'); }} showToast={showToast} />}
         {tab === 'password' && <PasswordPanel email={user?.email} showToast={showToast} />}
       </div>
@@ -259,15 +259,9 @@ function CurrentJobsPanel({ apps, onRefresh, showToast }) {
 }
 
 // ── JOB HISTORY ──
-function HistoryPanel({ apps, totalEarned, completedCount }) {
+function HistoryPanel({ apps }) {
   return (
     <>
-      <div className="wd-earnings-banner">
-        <div className="wd-eb-label">Total Earnings</div>
-        <div className="wd-eb-amount"><small>LKR</small>{totalEarned ? Number(totalEarned).toLocaleString() : '0'}</div>
-        <div className="wd-eb-sub">From {completedCount} completed shift{completedCount !== 1 ? 's' : ''}</div>
-      </div>
-
       {apps.length === 0 ? (
         <div className="wd-empty">
           <div className="wd-empty-icon"><IcoHistory /></div>

@@ -49,8 +49,10 @@ public class WorkerDashboardController {
                 .orElseThrow(() -> new BusinessException("Worker profile not found"));
 
         var attendances = attendanceRepository.findByWorker(worker);
-        // Earned = base wage + any extension pay, across every job the worker attended.
+        // Earned = base wage + any extension pay, counted only across COMPLETED jobs so the figure
+        // matches the "Completed" count and never includes pay from shifts that haven't settled.
         BigDecimal totalEarned = attendances.stream()
+                .filter(a -> a.getApplication().getJobPost().getStatus() == JobStatus.COMPLETED)
                 .map(a -> a.getApplication().getJobPost().getDailyWage()
                         .add(a.getExtraWage() == null ? BigDecimal.ZERO : a.getExtraWage()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

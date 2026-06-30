@@ -11,7 +11,7 @@ const JOB_STATS = [
   { key: 'filledJobs', label: 'Filled', tone: 'tone-blue' },
   { key: 'completedJobs', label: 'Completed', tone: 'tone-purple' },
   { key: 'cancelledJobs', label: 'Cancelled', tone: 'tone-red' },
-  { key: 'pendingApplicants', label: 'Applicants', tone: 'tone-amber' },
+  { key: 'workersPaid', label: 'Workers paid', tone: 'tone-amber' },
 ];
 
 export default function CompanyDashboard() {
