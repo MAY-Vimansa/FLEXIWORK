@@ -80,6 +80,21 @@ public class ApplicationService {
             throw new BusinessException("You cannot apply to your own company's job");
         }
 
+        // No double-booking: the worker can't hold two active (PENDING/ACCEPTED) applications for
+        // shifts that overlap in time on the same day. Check against everything they're already
+        // enrolled in that day, excluding this same job (the reapply case below handles that).
+        List<Application> sameDayActive = applicationRepository.findByWorkerAndStatusInAndJobPost_JobDate(
+                worker, List.of(ApplicationStatus.PENDING, ApplicationStatus.ACCEPTED), job.getJobDate());
+        for (Application other : sameDayActive) {
+            JobPost otherJob = other.getJobPost();
+            if (!otherJob.getId().equals(job.getId()) && shiftsConflict(job, otherJob)) {
+                throw new BusinessException("You're already enrolled in \"" + otherJob.getTitle()
+                        + "\" (" + otherJob.getStartTime() + "–" + otherJob.getEndTime()
+                        + ") on this day. Leave at least a " + RECOMMENDED_BREAK.toHours()
+                        + "-hour break between shifts");
+            }
+        }
+
         // Reapply: if a prior application exists, reactivate it when it was cancelled/rejected;
         // otherwise it's a genuine duplicate.
         Optional<Application> prior = applicationRepository.findByJobPostAndWorker(job, worker);
@@ -230,6 +245,17 @@ public class ApplicationService {
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
+    /** Recommended rest gap a worker should have between two shifts on the same day. */
+    private static final java.time.Duration RECOMMENDED_BREAK = java.time.Duration.ofHours(1);
+
+    /** True when two same-day shifts overlap OR sit closer together than {@link #RECOMMENDED_BREAK},
+     *  so the worker can't book a back-to-back shift with no rest. Shifts exactly one break apart
+     *  (e.g. 09:00–13:00 then 14:00–17:00) are allowed; 13:00–17:00 right after 09:00–13:00 is not. */
+    private boolean shiftsConflict(JobPost a, JobPost b) {
+        return a.getStartTime().isBefore(b.getEndTime().plus(RECOMMENDED_BREAK))
+                && b.getStartTime().isBefore(a.getEndTime().plus(RECOMMENDED_BREAK));
+    }
+
     private WorkerProfile requireWorker() {
         Long userId = currentUserService.requireCurrentUser().getId();
         return workerRepository.findByUserId(userId)
