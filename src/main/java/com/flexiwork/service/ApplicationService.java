@@ -261,7 +261,8 @@ public class ApplicationService {
                 job.getDailyWage(),
                 GeoUtil.mapsDirectionsLink(job.getLatitude(), job.getLongitude()),
                 token,
-                qrUrl);
+                qrUrl,
+                job.getStatus());
     }
 
     private ApplicantResponse toApplicant(Application a) {

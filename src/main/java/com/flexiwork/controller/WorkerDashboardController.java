@@ -61,6 +61,10 @@ public class WorkerDashboardController {
         long activeApplications = applicationRepository.findByWorkerOrderByAppliedAtDesc(worker).stream()
                 .filter(app -> app.getStatus() == ApplicationStatus.PENDING
                         || app.getStatus() == ApplicationStatus.ACCEPTED)
+                // A job the company has finished (COMPLETED) or cancelled (CANCELLED) is no longer
+                // "enrolled" — it belongs in Job History, so keep it out of the active count.
+                .filter(app -> app.getJobPost().getStatus() != JobStatus.COMPLETED
+                        && app.getJobPost().getStatus() != JobStatus.CANCELLED)
                 .count();
 
         return new DashboardResponse(completedJobs, totalEarned, activeApplications, attendances.size());

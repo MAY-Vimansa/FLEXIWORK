@@ -72,8 +72,12 @@ export default function WorkerDashboard() {
     <div className="page"><div className="skeleton skel-card" /></div>
   );
 
-  const activeApps  = apps.filter(a => ['PENDING', 'ACCEPTED'].includes(a.status));
-  const historyApps = apps.filter(a => !['PENDING', 'ACCEPTED'].includes(a.status));
+  // A job the company has completed/settled OR cancelled is "ended": it leaves Enrolled Jobs and
+  // shows up in Job History — even though the application row itself is still ACCEPTED.
+  const isActive    = a => ['PENDING', 'ACCEPTED'].includes(a.status)
+    && a.jobStatus !== 'COMPLETED' && a.jobStatus !== 'CANCELLED';
+  const activeApps  = apps.filter(isActive);
+  const historyApps = apps.filter(a => !isActive(a));
   const ini = initials(profile.fullName, user?.email);
 
   const TABS = [
@@ -104,7 +108,9 @@ export default function WorkerDashboard() {
         </div>
         <div className="wd-banner-stats">
           <div className="wd-bstat">
-            <div className="wd-bstat-num">{stats?.activeApplications ?? '–'}</div>
+            {/* Count the same in-progress jobs shown under Current Jobs, so the banner stays
+                consistent with the list and excludes completed/cancelled jobs immediately. */}
+            <div className="wd-bstat-num">{activeApps.length}</div>
             <div className="wd-bstat-lbl">Enrolled Jobs</div>
           </div>
           <div className="wd-bstat">
@@ -274,10 +280,17 @@ function HistoryPanel({ apps, totalEarned, completedCount }) {
             <span className="wd-sec-title">Job History</span>
           </div>
           <div className="wd-history-list">
-            {apps.map(a => (
+            {apps.map(a => {
+              // Reflect the job outcome even though the application row stays ACCEPTED:
+              // a finished job reads COMPLETED, a company-cancelled job reads CANCELLED.
+              const eff = a.jobStatus === 'COMPLETED' ? 'COMPLETED'
+                : a.jobStatus === 'CANCELLED' ? 'CANCELLED'
+                : a.status;
+              const ended = eff === 'CANCELLED' || eff === 'REJECTED';
+              return (
               <div key={a.id} className="wd-history-card">
-                <div className={`wd-hist-icon${a.status === 'CANCELLED' ? ' wd-cancelled' : ''}`}>
-                  {a.status === 'CANCELLED' ? <IcoX /> : <IcoCheck />}
+                <div className={`wd-hist-icon${ended ? ' wd-cancelled' : ''}`}>
+                  {ended ? <IcoX /> : <IcoCheck />}
                 </div>
                 <div className="wd-hist-main">
                   <div className="wd-hist-title">{a.jobTitle}</div>
@@ -285,13 +298,14 @@ function HistoryPanel({ apps, totalEarned, completedCount }) {
                   <div className="wd-hist-meta">{a.jobDate}</div>
                 </div>
                 <div className="wd-hist-right">
-                  {a.status !== 'CANCELLED' && (
+                  {!ended && (
                     <div className="wd-hist-wage"><b>LKR</b>{Number(a.dailyWage).toLocaleString()}</div>
                   )}
-                  <StatusPill status={a.status} />
+                  <StatusPill status={eff} />
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
