@@ -89,7 +89,7 @@ export default function About() {
           position: 'relative', zIndex: 2,
         }}>
           {[
-            { val: '2023', lbl: 'Year Founded' },
+            { val: '2026', lbl: 'Year Founded' },
             { val: '10K+', lbl: 'Workers Placed' },
             { val: '100+', lbl: 'Partner Companies' },
             { val: '25', lbl: 'Districts Covered' },
@@ -153,7 +153,7 @@ export default function About() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
-                2023 — Colombo, Sri Lanka
+                2026 — Colombo, Sri Lanka
               </div>
             </div>
 
