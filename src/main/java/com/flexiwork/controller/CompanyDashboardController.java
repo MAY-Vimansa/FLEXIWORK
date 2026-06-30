@@ -48,11 +48,14 @@ public class CompanyDashboardController {
         long filled = jobs.stream().filter(j -> j.getStatus() == JobStatus.FILLED).count();
         long completed = jobs.stream().filter(j -> j.getStatus() == JobStatus.COMPLETED).count();
         long cancelled = jobs.stream().filter(j -> j.getStatus() == JobStatus.CANCELLED).count();
+        // CANCELLED is a soft delete, so "Total jobs" counts only live jobs (open + filled +
+        // completed). This keeps the strip consistent: total == the non-cancelled buckets.
+        long totalJobs = open + filled + completed;
         long pendingApplicants = jobs.stream()
                 .mapToLong(j -> applicationRepository.countByJobPostAndStatus(j, ApplicationStatus.PENDING))
                 .sum();
         BigDecimal outstanding = paymentService.summary().totalOutstanding();
-        return new DashboardResponse(jobs.size(), open, filled, completed, cancelled, pendingApplicants, outstanding,
+        return new DashboardResponse(totalJobs, open, filled, completed, cancelled, pendingApplicants, outstanding,
                 new CompanyInfo(company.getCompanyName(), company.getBrNumber(),
                         company.getDistrict() == null ? null : company.getDistrict().name(),
                         company.getAddressLine(), company.getLogoPath(), company.getStatus().name(),
