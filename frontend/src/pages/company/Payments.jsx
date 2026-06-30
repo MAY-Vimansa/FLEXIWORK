@@ -29,51 +29,91 @@ export default function Payments() {
     } finally { setDownloadingId(null); }
   }
 
+  const FILTERS = [['', 'All'], ['PENDING', 'Pending'], ['PAID', 'Paid']];
+
   return (
     <div className="page">
-      <h1>Payments</h1>
+      {/* Header */}
+      <div className="pay-header">
+        <h1 className="pay-title">Payments</h1>
+      </div>
+
+      {/* Summary cards */}
       {summary && (
-        <div className="stat-grid mt-16">
-          <div className="card stat"><div className="label">Pending</div><div className="value">{summary.pendingCount}</div></div>
-          <div className="card stat"><div className="label">Outstanding (LKR)</div><div className="value">{Number(summary.totalOutstanding).toLocaleString()}</div></div>
-          <div className="card stat"><div className="label">Total paid (LKR)</div><div className="value">{Number(summary.totalPaid).toLocaleString()}</div></div>
+        <div className="pay-summary">
+          <div className="pay-sum-card">
+            <div className="pay-sum-label">Pending</div>
+            <div className="pay-sum-value">{summary.pendingCount}</div>
+          </div>
+          <div className="pay-sum-card is-outstanding">
+            <div className="pay-sum-label">Outstanding · LKR</div>
+            <div className="pay-sum-value">{Number(summary.totalOutstanding).toLocaleString()}</div>
+          </div>
+          <div className="pay-sum-card">
+            <div className="pay-sum-label">Total paid · LKR</div>
+            <div className="pay-sum-value">{Number(summary.totalPaid).toLocaleString()}</div>
+          </div>
         </div>
       )}
+
       {err && <div className="form-error mt-16">{err}</div>}
 
-      <div className="chips mt-16">
-        {['', 'PENDING', 'PAID'].map((s) => (
-          <span key={s} className={`chip ${status === s ? 'active' : ''}`} onClick={() => setStatus(s)}>{s || 'All'}</span>
-        ))}
+      {/* Toolbar: filter + count */}
+      <div className="pay-toolbar">
+        <div className="pay-filter">
+          {FILTERS.map(([val, label]) => (
+            <button
+              key={val}
+              type="button"
+              className={`pay-filter-btn ${status === val ? 'is-active' : ''}`}
+              onClick={() => setStatus(val)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <span className="pay-count">{payments ? payments.length : 0} records</span>
       </div>
 
-      <div className="card mt-16">
-        {!payments ? <div className="skeleton skel-card" /> : payments.length === 0 ? (
-          <div className="empty">No payments.</div>
-        ) : (
-          <table>
-            <thead><tr><th>Receipt</th><th>Job</th><th>Commission</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-              {payments.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.receiptNumber}</td>
-                  <td>{p.jobTitle}</td>
-                  <td>LKR {Number(p.commissionAmount).toLocaleString()}</td>
-                  <td><span className={`badge ${p.status}`}>{p.status}</span></td>
-                  <td>
-                    <div className="row">
-                      {p.status === 'PENDING' && <Link className="btn btn-primary btn-sm" to={`/company/payments/${p.id}/pay`}>Pay</Link>}
-                      <button className="btn btn-secondary btn-sm" disabled={downloadingId === p.id} onClick={() => download(p.id)}>
-                        {downloadingId === p.id ? 'Downloading…' : p.status === 'PAID' ? 'Receipt' : 'Invoice'}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {/* List / states */}
+      {!payments ? (
+        <div className="skeleton skel-card mt-16" />
+      ) : payments.length === 0 ? (
+        <div className="pay-empty">
+          <div className="pay-empty-icon">Rs</div>
+          <div className="pay-empty-title">No payments yet</div>
+          <div className="pay-empty-sub">Payments will appear here once jobs are completed.</div>
+        </div>
+      ) : (
+        <div className="pay-list">
+          {payments.map((p) => (
+            <div key={p.id} className="pay-row">
+              <div className="pay-row-main">
+                <div className="pay-row-job">{p.jobTitle}</div>
+                <div className="pay-row-meta">
+                  Receipt {p.receiptNumber} · <span className={`badge ${p.status}`}>{p.status}</span>
+                </div>
+              </div>
+              <div className="pay-row-amount">
+                <div className="pay-row-label">Commission · LKR</div>
+                <div className="pay-row-value">{Number(p.commissionAmount).toLocaleString()}</div>
+              </div>
+              <div className="pay-row-actions">
+                {p.status === 'PENDING' && (
+                  <Link className="pay-btn pay-btn-primary" to={`/company/payments/${p.id}/pay`}>Pay</Link>
+                )}
+                <button
+                  className="pay-btn pay-btn-ghost"
+                  disabled={downloadingId === p.id}
+                  onClick={() => download(p.id)}
+                >
+                  {downloadingId === p.id ? 'Downloading…' : p.status === 'PAID' ? 'Receipt' : 'Invoice'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
