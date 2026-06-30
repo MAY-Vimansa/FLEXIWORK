@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, ApiError } from '../../api';
 import MapPicker from '../../components/MapPicker';
 import { geocodeAddress } from '../../geocode';
+import '../../styles.css';
 
 // Post a job with a Leaflet pin. Supports "use my registered company location" pre-fill.
 export default function PostJob() {

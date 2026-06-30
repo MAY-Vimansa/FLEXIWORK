@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api';
+import '../../styles.css';
 
 const POLL_MS = 20_000;
 
@@ -18,6 +19,7 @@ export default function CompanyDashboard() {
   const [logoFailed, setLogoFailed] = useState(false);
   const firstLoad = useRef(true);
 
+  // ── Data: load once + poll on an interval ──
   function load() {
     api.get('/api/company/dashboard')
       .then(setStats)
@@ -33,6 +35,25 @@ export default function CompanyDashboard() {
 
   const company = stats?.company;
 
+  // Stat-strip value + tone helper (presentational only).
+  function statValue(s) {
+    const val = Number(stats?.[s.key]) || 0;
+    return { raw: stats?.[s.key], on: val > 0 };
+  }
+
+  // ── Derived display values (presentational only) ──
+  const logoInitial = (company?.companyName || '?').charAt(0).toUpperCase();
+  const brPreview = company?.brNumber || '—';
+  const districtLabel = company?.district?.replaceAll('_', ' ') || '—';
+  const addressPreview = company?.addressLine || '—';
+  const approvedPreview = (() => {
+    if (!company?.approvedAt) return 'Not yet';
+    const dt = new Date(company.approvedAt);
+    return Number.isNaN(dt.getTime()) ? 'Not yet' : dt.toLocaleDateString();
+  })();
+  const commissionPreview = Number(stats?.outstandingCommission).toLocaleString();
+  const isSettled = Number(stats?.outstandingCommission) === 0;
+
   return (
     <div className="page cdash">
       {/* Header strip: brand + live */}
@@ -41,7 +62,7 @@ export default function CompanyDashboard() {
           <div className="cdash-logo">
             {company?.logoPath && !logoFailed
               ? <img src={company.logoPath} alt={company.companyName} onError={() => setLogoFailed(true)} />
-              : <span>{(company?.companyName || '?').charAt(0).toUpperCase()}</span>}
+              : <span>{logoInitial}</span>}
           </div>
           <div className="cdash-brand-text">
             <h2 className="cdash-company">{company?.companyName || 'Company'}</h2>
@@ -70,20 +91,20 @@ export default function CompanyDashboard() {
             <div className="cdash-meta">
               <div className="cdash-meta-item">
                 <span className="cdash-meta-label">BR number</span>
-                <span className="cdash-meta-value">{company.brNumber || '—'}</span>
+                <span className="cdash-meta-value">{brPreview}</span>
               </div>
               <div className="cdash-meta-item">
                 <span className="cdash-meta-label">District</span>
-                <span className="cdash-meta-value">{company.district?.replaceAll('_', ' ') || '—'}</span>
+                <span className="cdash-meta-value">{districtLabel}</span>
               </div>
               <div className="cdash-meta-item">
                 <span className="cdash-meta-label">Address</span>
-                <span className="cdash-meta-value">{company.addressLine || '—'}</span>
+                <span className="cdash-meta-value">{addressPreview}</span>
               </div>
               <div className="cdash-meta-item">
                 <span className="cdash-meta-label">Verified on</span>
                 <span className={`cdash-meta-value ${company.approvedAt ? '' : 'is-muted'}`}>
-                  {company.approvedAt ? new Date(company.approvedAt).toLocaleDateString() : 'Not yet'}
+                  {approvedPreview}
                 </span>
               </div>
             </div>
@@ -94,11 +115,11 @@ export default function CompanyDashboard() {
             <h4 className="cd-eyebrow">Job overview</h4>
             <div className="cdash-stat-strip">
               {JOB_STATS.map((s) => {
-                const val = Number(stats[s.key]) || 0;
+                const { raw, on } = statValue(s);
                 return (
                   <div key={s.key} className="cdash-stat">
                     <div className="cdash-stat-label">{s.label}</div>
-                    <div className={`cdash-stat-value ${val > 0 ? 'is-on' : 'is-zero'}`}>{stats[s.key]}</div>
+                    <div className={`cdash-stat-value ${on ? 'is-on' : 'is-zero'}`}>{raw}</div>
                   </div>
                 );
               })}
@@ -111,9 +132,9 @@ export default function CompanyDashboard() {
             <div className="cdash-finance">
               <div className="cdash-finance-body">
                 <div className="cdash-finance-label">Outstanding commission (LKR)</div>
-                <div className="cdash-finance-value">{Number(stats.outstandingCommission).toLocaleString()}</div>
+                <div className="cdash-finance-value">{commissionPreview}</div>
               </div>
-              {Number(stats.outstandingCommission) === 0 && (
+              {isSettled && (
                 <span className="cdash-settled">All settled</span>
               )}
             </div>
