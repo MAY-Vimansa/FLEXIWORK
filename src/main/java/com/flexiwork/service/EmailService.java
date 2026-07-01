@@ -1,31 +1,33 @@
 package com.flexiwork.service;
 
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 /**
- * Sends transactional email (OTP codes). Fail-safe and config-driven: when no SMTP username is
- * configured (dev), the message is logged instead of sent, so the OTP flow is fully demonstrable
- * without real credentials.
+ * Sends transactional email via Resend API (HTTPS-based, works on Railway free tier).
+ * Fail-safe: when no API key is configured, the message is logged instead of sent.
  */
 @Service
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    private final Resend resend;
     private final String from;
     private final boolean enabled;
 
-    public EmailService(JavaMailSender mailSender,
-                        @Value("${spring.mail.username:}") String from) {
-        this.mailSender = mailSender;
+    public EmailService(
+            @Value("${resend.api-key:}") String apiKey,
+            @Value("${resend.from:onboarding@resend.dev}") String from) {
         this.from = from;
-        this.enabled = from != null && !from.isBlank();
+        this.enabled = apiKey != null && !apiKey.isBlank();
+        this.resend = enabled ? new Resend(apiKey) : null;
     }
 
     public void send(String to, String subject, String body) {
@@ -34,15 +36,15 @@ public class EmailService {
             return;
         }
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(from);
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
-            log.info("Email sent to {}", to);
-        } catch (Exception ex) {
-            // Fail-safe: never let an email failure break the calling flow.
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from(from)
+                    .to(to)
+                    .subject(subject)
+                    .text(body)
+                    .build();
+            CreateEmailResponse response = resend.emails().send(params);
+            log.info("Email sent to {} — id: {}", to, response.getId());
+        } catch (ResendException ex) {
             log.warn("Failed to send email to {} (continuing): {}", to, ex.getMessage());
         }
     }
