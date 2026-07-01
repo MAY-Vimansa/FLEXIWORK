@@ -25,12 +25,12 @@ spring:
       max-file-size: 5MB
       max-request-size: 25MB     # registration uploads several files at once
 
-  # Gmail SMTP for email OTP. Leave password blank to run in "log instead of send" mode.
+  # Gmail SMTP for email OTP. Leave username blank to run in "log instead of send" mode.
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ""               # your gmail address
-    password: ""               # 16-char Gmail App Password (NOT your login password)
+    username: ${MAIL_USERNAME:info.flexiworklk@gmail.com}   # override via MAIL_USERNAME in prod
+    password: ${MAIL_PASSWORD:uoyyjonrxwqbnbui}             # 16-char Gmail App Password (override via MAIL_PASSWORD)
     properties:
       mail:
         smtp:
@@ -110,6 +110,8 @@ logging:
     com.flexiwork: INFO
 
 cloudinary:
-  cloud-name: ${CLOUDINARY_CLOUD_NAME}
-  api-key: ${CLOUDINARY_API_KEY}
-  api-secret: ${CLOUDINARY_API_SECRET}
+  # Empty local defaults so the app boots without Cloudinary env vars set.
+  # Uploads that actually hit Cloudinary won't work until these are provided.
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
