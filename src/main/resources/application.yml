@@ -28,7 +28,7 @@ spring:
   # Gmail SMTP for email OTP. Leave username blank to run in "log instead of send" mode.
   mail:
     host: smtp.gmail.com
-    port: 587
+    port: 465
     username: ${MAIL_USERNAME}   # override via MAIL_USERNAME in prod
     password: ${MAIL_PASSWORD}             # 16-char Gmail App Password (override via MAIL_PASSWORD)
     properties:
