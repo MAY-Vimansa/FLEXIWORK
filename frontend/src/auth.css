@@ -241,6 +241,23 @@
 .wr-photo-title { font-size: 14px; font-weight: 700; color: #fff; }
 .wr-photo-sub { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 1px; }
 
+/* "For employers" eyebrow above the stepper (company register) */
+.wr-eyebrow {
+  font-size: 11px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
+  color: rgba(255,255,255,.6); margin: -22px 0 22px;
+}
+
+/* Trust badge pinned to the bottom of the sidebar (company register) */
+.wr-badge {
+  margin-top: auto; display: flex; align-items: flex-start; gap: 12px;
+  background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.18);
+  border-radius: 16px; padding: 15px 16px;
+}
+.wr-badge-icon { flex: 0 0 auto; color: #fff; margin-top: 1px; }
+.wr-badge-text { display: flex; flex-direction: column; min-width: 0; }
+.wr-badge-title { font-size: 14px; font-weight: 700; color: #fff; }
+.wr-badge-sub { font-size: 12.5px; color: rgba(255,255,255,.72); margin-top: 3px; line-height: 1.4; }
+
 /* Right white form panel */
 .wr-panel { flex: 1 1 auto; padding: 40px 44px; min-width: 0; }
 .wr-title { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -.4px; }
@@ -330,6 +347,8 @@
   .wr-brand { margin-bottom: 0; }
   .wr-steps { flex: 1 1 220px; }
   .wr-photo { margin-top: 0; flex: 1 1 220px; }
+  .wr-eyebrow { margin: 0; flex-basis: 100%; }
+  .wr-badge { margin-top: 0; flex: 1 1 220px; }
 }
 @media (max-width: 560px) {
   .wr-panel { padding: 28px 22px; }

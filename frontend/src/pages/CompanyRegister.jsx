@@ -6,22 +6,54 @@ import { geocodeAddress } from '../geocode';
 import { PASSWORD_RE, EMAIL_RE } from '../validation';
 import '../auth.css';
 
-function EyeIcon({ open }) {
-  return open ? (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  ) : (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
+// Sidebar stepper labels (title + sub) shown down the red panel.
+const SIDE_STEPS = [
+  { title: 'Company details', sub: 'Business & documents' },
+  { title: 'Location', sub: 'District & map pin' },
+];
+
+// Heading + subtitle for the white panel, per step.
+const PANEL_META = {
+  1: { title: 'Register your company', sub: 'Step 1 of 2 — your business details.' },
+  2: { title: 'Where are you based?', sub: 'Step 2 of 2 — help workers find you.' },
+};
+
+function UploadGlyph() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 15V4" /><path d="M7 9l5-5 5 5" /><path d="M5 20h14" />
     </svg>
   );
 }
 
-// 2-step company registration: details + KYC files, then location pin — styled to the mockup.
+function ShieldGlyph() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
+
+// A styled document upload row: hidden native input, upload icon, format hint / filename, "Choose file" button.
+function FileRow({ title, hint, accept, file, onPick }) {
+  return (
+    <label className={`wr-file ${file ? 'has' : ''}`}>
+      <span className="wr-file-icon"><UploadGlyph /></span>
+      <span className="wr-file-text">
+        <span className="wr-file-title">{title}</span>
+        <span className="wr-file-name">{file ? file.name : hint}</span>
+      </span>
+      <span className="wr-file-btn">Choose file</span>
+      <input type="file" accept={accept} hidden onChange={(e) => onPick(e.target.files[0])} />
+    </label>
+  );
+}
+
+// 2-step company registration: details + KYC files, then location pin.
+// Split-panel design (red sidebar stepper + white form); logic unchanged from the original flow.
 export default function CompanyRegister() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -112,109 +144,138 @@ export default function CompanyRegister() {
     </div>
   );
 
-  return (
-    <div className="auth-bg">
-      <div className="auth-card wide">
-        <div className="auth-head">
-          <div className="auth-brand"><span className="auth-mark">FW</span><span className="auth-name">FlexiWork</span></div>
-          <div className="steps">
-            {['Company details', 'Location'].map((label, i) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
-                <div className={`step ${step >= i + 1 ? 'done' : ''}`}><span className="step-num">{i + 1}</span>{label}</div>
-                {i < 1 && <span className="step-connector" />}
-              </div>
-            ))}
-          </div>
-        </div>
+  const meta = PANEL_META[step];
 
-        <div className="auth-body">
+  return (
+    <div className="wr-bg">
+      <div className="wr-shell">
+        {/* ── Left red sidebar: brand, vertical stepper, verified badge ── */}
+        <aside className="wr-side">
+          <div className="wr-brand">
+            <span className="wr-mark">FW</span>
+            <span className="wr-name">FlexiWork</span>
+          </div>
+
+          <div className="wr-eyebrow">For employers</div>
+
+          <div className="wr-steps">
+            {SIDE_STEPS.map((s, i) => {
+              const n = i + 1;
+              const state = step > n ? 'done' : step === n ? 'active' : '';
+              return (
+                <div className={`wr-step ${state}`} key={s.title}>
+                  <span className="wr-step-num">{step > n ? '✓' : n}</span>
+                  <span className="wr-step-text">
+                    <span className="wr-step-title">{s.title}</span>
+                    <span className="wr-step-sub">{s.sub}</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="wr-badge">
+            <span className="wr-badge-icon"><ShieldGlyph /></span>
+            <span className="wr-badge-text">
+              <span className="wr-badge-title">Verified employers</span>
+              <span className="wr-badge-sub">We check your BR certificate so workers can trust every listing.</span>
+            </span>
+          </div>
+        </aside>
+
+        {/* ── Right white form panel ── */}
+        <section className="wr-panel">
+          <h1 className="wr-title">{meta.title}</h1>
+          <p className="wr-sub">{meta.sub}</p>
+
           {err && <div className="auth-msg-err">{err}</div>}
 
           {step === 1 && (
             <>
-              <div className="auth-grid-2">
-                <div className="auth-field"><label>Company name</label>
-                  <input className="auth-input" maxLength={120} value={details.companyName} onChange={(e) => setDetails({ ...details, companyName: e.target.value })} />{fe('companyName')}</div>
-                <div className="auth-field"><label>BR number</label>
+              <div className="wr-grid">
+                <div className="wr-field"><label>Company name</label>
+                  <input className="auth-input" maxLength={120} placeholder="Lanka Harvest Logistics" value={details.companyName}
+                    onChange={(e) => setDetails({ ...details, companyName: e.target.value })} />{fe('companyName')}</div>
+
+                <div className="wr-field"><label>BR number</label>
                   <input className="auth-input" placeholder="e.g. PV12345" maxLength={10} value={details.brNumber}
                     onChange={(e) => setDetails({ ...details, brNumber: e.target.value.toUpperCase() })} />
-                  <p className="auth-hint">Format: PV/PQ/PB/GA/GS/FB followed by 4-8 digits</p>
+                  <p className="auth-hint">Format: PV/PQ/PB/GA/GS/FB + 4–8 digits.</p>
                   {details.brNumber && !BR_RE.test(details.brNumber) &&
                     <div className="auth-err">Invalid BR number format</div>}{fe('brNumber')}</div>
-              </div>
-              <div className="auth-grid-2">
-                <div className="auth-field"><label>Email</label>
-                  <input className="auth-input" type="email" maxLength={120} placeholder="name@example.com" value={details.email} onChange={(e) => setDetails({ ...details, email: e.target.value })} />
+
+                <div className="wr-field"><label>Email</label>
+                  <input className="auth-input" type="email" maxLength={120} placeholder="name@example.com" value={details.email}
+                    onChange={(e) => setDetails({ ...details, email: e.target.value })} />
                   {details.email && !EMAIL_RE.test(details.email) &&
                     <div className="auth-err">Enter a valid email address</div>}{fe('email')}</div>
-                <div className="auth-field"><label>Password</label>
+
+                <div className="wr-field"><label>Password</label>
                   <div className="auth-pwd-wrap">
-                    <input className="auth-input" type={showPw ? 'text' : 'password'} maxLength={13} value={details.password} onChange={(e) => setDetails({ ...details, password: e.target.value })} />
-                    <button type="button" className="auth-eye-btn" onClick={() => setShowPw(v => !v)} aria-label={showPw ? 'Hide password' : 'Show password'}>
-                      <EyeIcon open={showPw} />
+                    <input className="auth-input" type={showPw ? 'text' : 'password'} maxLength={13} value={details.password}
+                      onChange={(e) => setDetails({ ...details, password: e.target.value })} />
+                    <button type="button" className="wr-show-btn" onClick={() => setShowPw((v) => !v)}>
+                      {showPw ? 'HIDE' : 'SHOW'}
                     </button>
                   </div>
-                  <p className="auth-hint">8-13 characters, mixing letters and numbers, no symbols</p>
+                  <p className="auth-hint">8–13 characters, letters &amp; numbers, no symbols.</p>
                   {details.password && !PASSWORD_RE.test(details.password) &&
-                    <div className="auth-err">Password must be 8-13 letters/numbers only, with at least one letter and one number</div>}{fe('password')}</div>
-              </div>
-              <div className="auth-grid-2">
-                <div className="auth-field"><label>Confirm password</label>
+                    <div className="auth-err">8-13 letters/numbers, with at least one letter and one number</div>}{fe('password')}</div>
+
+                <div className="wr-field"><label>Confirm password</label>
                   <div className="auth-pwd-wrap">
-                    <input className="auth-input" type={showConfirmPw ? 'text' : 'password'} maxLength={13} value={details.confirmPassword} onChange={(e) => setDetails({ ...details, confirmPassword: e.target.value })} />
-                    <button type="button" className="auth-eye-btn" onClick={() => setShowConfirmPw(v => !v)} aria-label={showConfirmPw ? 'Hide password' : 'Show password'}>
-                      <EyeIcon open={showConfirmPw} />
+                    <input className="auth-input" type={showConfirmPw ? 'text' : 'password'} maxLength={13} value={details.confirmPassword}
+                      onChange={(e) => setDetails({ ...details, confirmPassword: e.target.value })} />
+                    <button type="button" className="wr-show-btn" onClick={() => setShowConfirmPw((v) => !v)}>
+                      {showConfirmPw ? 'HIDE' : 'SHOW'}
                     </button>
                   </div>
                   {details.confirmPassword && details.confirmPassword !== details.password &&
                     <div className="auth-err">Passwords do not match</div>}{fe('confirmPassword')}</div>
               </div>
-              {!step1Valid && (details.companyName || details.brNumber || details.email || details.password) && (
-                <p className="auth-hint" style={{ color: 'var(--red)' }}>
-                  {!details.companyName && 'Enter a company name. '}
-                  {details.companyName && !BR_RE.test(details.brNumber) && 'BR number format is invalid. '}
-                  {details.companyName && BR_RE.test(details.brNumber) && !EMAIL_RE.test(details.email) && 'Email is invalid. '}
-                  {details.companyName && BR_RE.test(details.brNumber) && EMAIL_RE.test(details.email) && !PASSWORD_RE.test(details.password) && 'Password does not meet the requirements. '}
-                  {details.companyName && BR_RE.test(details.brNumber) && EMAIL_RE.test(details.email) && PASSWORD_RE.test(details.password) && details.confirmPassword !== details.password && 'Confirm password does not match.'}
-                </p>
-              )}
-              <div className="auth-field"><label>BR certificate (PDF/JPG/PNG)</label>
-                <input className="auth-input" type="file" accept="image/*,application/pdf" onChange={(e) => setFiles({ ...files, brCertificate: e.target.files[0] })} />
-                {files.brCertificate && <div className="auth-file-chip">📄 {files.brCertificate.name}</div>}</div>
-              <div className="auth-grid-2">
-                <div className="auth-field"><label>Company logo</label>
-                  <input className="auth-input" type="file" accept="image/*" onChange={(e) => setFiles({ ...files, logo: e.target.files[0] })} />
-                  {files.logo && <div className="auth-file-chip">🖼 {files.logo.name}</div>}</div>
-                <div className="auth-field"><label>Exterior photo</label>
-                  <input className="auth-input" type="file" accept="image/*" onChange={(e) => setFiles({ ...files, premisesPhoto: e.target.files[0] })} />
-                  {files.premisesPhoto && <div className="auth-file-chip">🖼 {files.premisesPhoto.name}</div>}</div>
-              </div>
+
+              <div className="wr-field"><label>Documents</label></div>
+              <FileRow title="BR certificate" hint="PDF, JPG or PNG · required" accept="image/*,application/pdf"
+                file={files.brCertificate} onPick={(f) => setFiles({ ...files, brCertificate: f })} />
+              <FileRow title="Company logo" hint="PNG or JPG · optional" accept="image/*"
+                file={files.logo} onPick={(f) => setFiles({ ...files, logo: f })} />
+              <FileRow title="Exterior photo" hint="Photo of your premises · optional" accept="image/*"
+                file={files.premisesPhoto} onPick={(f) => setFiles({ ...files, premisesPhoto: f })} />
+
               <button className="auth-btn"
                 disabled={!files.brCertificate || !files.logo || !files.premisesPhoto || !step1Valid}
-                onClick={() => setStep(2)}>Continue to location</button>
+                onClick={() => setStep(2)}>Continue to location →</button>
+              {(!files.brCertificate || !files.logo || !files.premisesPhoto) &&
+                <p className="auth-hint" style={{ textAlign: 'center' }}>Attach all three documents to continue.</p>}
+
+              <div className="auth-foot">Already registered? <a href="/login">Log in</a></div>
             </>
           )}
 
           {step === 2 && (
             <>
-              <div className="auth-field"><label>District</label>
+              <div className="wr-field"><label>District</label>
                 <select className="auth-input" value={details.district} onChange={(e) => onDistrict(e.target.value)}>
                   <option value="">Select…</option>
                   {districts.map((d) => <option key={d.name} value={d.name}>{d.name.replaceAll('_', ' ')}</option>)}
                 </select>{fe('district')}</div>
-              <div className="auth-field"><label>Address line</label>
-                <input className="auth-input" maxLength={160} value={details.addressLine} onChange={(e) => setDetails({ ...details, addressLine: e.target.value })} />
+
+              <div className="wr-field"><label>Address line</label>
+                <input className="auth-input" maxLength={160} placeholder="88 Puttalam Road" value={details.addressLine}
+                  onChange={(e) => setDetails({ ...details, addressLine: e.target.value })} />
                 {locating && <p className="auth-hint">Locating…</p>}{fe('addressLine')}</div>
-              <label className="auth-field" style={{ display: 'block' }}>Drop a pin on your exact location</label>
-              <div className="map mt-8"><MapPicker value={pin} center={center} onChange={(lat, lng) => setPin({ lat, lng })} /></div>
-              {pin.lat && <p className="auth-hint">📍 {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}</p>}
+
+              <div className="wr-field"><label>Drop a pin on your exact location</label>
+                <div className="map mt-8"><MapPicker value={pin} center={center} onChange={(lat, lng) => setPin({ lat, lng })} /></div>
+                {pin.lat && <p className="auth-hint">📍 {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}</p>}</div>
+
               <button className="auth-btn" disabled={busy} onClick={submit}>{busy ? 'Submitting…' : 'Submit registration'}</button>
-              <button className="auth-btn-ghost" onClick={() => setStep(1)}>Back</button>
+              <button className="auth-btn-ghost" onClick={() => setStep(1)}>← Back</button>
+
+              <div className="auth-foot">Already registered? <a href="/login">Log in</a></div>
             </>
           )}
-
-          <div className="auth-foot">Already registered? <a href="/login">Log in</a></div>
-        </div>
+        </section>
       </div>
     </div>
   );
