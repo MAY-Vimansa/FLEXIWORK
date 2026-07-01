@@ -12,8 +12,12 @@ const fs = require('fs');
 const app = express();
 app.use(express.json());
 
+const path = require('path');
+
 const SHARED_SECRET = process.env.WHATSAPP_SHARED_SECRET || 'dev-only-change-me';
-const SESSION_PATH = './baileys_session';
+const SESSION_PATH = process.env.RAILWAY_VOLUME_MOUNT_PATH
+    ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'baileys_session')
+    : './baileys_session'; // local dev fallback
 const PORT = process.env.PORT || 3001;
 
 let sock = null;
