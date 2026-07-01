@@ -48,7 +48,7 @@ export default function JobDetail() {
         <div className="job-meta">{job.companyName} · {job.category?.replaceAll('_', ' ')}</div>
         <p className="mt-16">{job.description}</p>
 
-        <div className="mt-16"><strong>Wage:</strong> <span className="price">LKR {Number(job.dailyWage).toLocaleString()}</span></div>
+        <div className="mt-16"><strong>Wage:</strong> <span className="price">LKR {Math.round(Number(job.dailyWage)).toLocaleString()}</span></div>
         <div className="mt-8"><strong>Date:</strong> {job.jobDate} ({job.startTime?.slice(0,5)}–{job.endTime?.slice(0,5)})</div>
         <div className="mt-8"><strong>Slots:</strong> {job.slotsLeft} of {job.workersNeeded} left</div>
         <div className="mt-8">

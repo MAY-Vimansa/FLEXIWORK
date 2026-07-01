@@ -73,7 +73,7 @@ export default function PostJob() {
       if (!(workers >= 1 && workers <= 500)) { setErr('Workers needed must be between 1 and 500'); setBusy(false); return; }
       const body = {
         ...form,
-        dailyWage: Number(form.dailyWage),
+        dailyWage: Math.round(Number(form.dailyWage)),
         workersNeeded: Number(form.workersNeeded),
         startTime: form.startTime + ':00',
         endTime: form.endTime + ':00',
@@ -161,7 +161,7 @@ export default function PostJob() {
               </div>
               <div className="pj-field">
                 <label className="pj-label">Daily wage · LKR</label>
-                <input className="pj-input" type="number" min="0.01" step="0.01" placeholder="2,700"
+                <input className="pj-input" type="number" min="1" step="1" placeholder="2,700"
                        value={form.dailyWage} onChange={(e) => setForm({ ...form, dailyWage: e.target.value })} />
                 {fe('dailyWage')}
               </div>

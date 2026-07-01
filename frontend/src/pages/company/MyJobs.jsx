@@ -98,7 +98,7 @@ export default function MyJobs() {
             <div className="mj-card-stats">
               <div className="mj-pay">
                 <div className="mj-stat-label">Pay · LKR</div>
-                <div className="mj-pay-value">{Number(j.dailyWage).toLocaleString()}</div>
+                <div className="mj-pay-value">{Math.round(Number(j.dailyWage)).toLocaleString()}</div>
               </div>
               <div className="mj-accepted">
                 <div className="mj-accepted-head">

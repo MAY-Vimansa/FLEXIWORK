@@ -22,6 +22,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
+
 /**
  * Job posting use cases: the public feed (dynamic filtering + pagination) and company-scoped CRUD.
  * Posting/editing requires a VERIFIED company; staff (poster) actions resolve the company from the
@@ -249,7 +251,9 @@ public class JobService {
         job.setJobDate(r.jobDate());
         job.setStartTime(r.startTime());
         job.setEndTime(r.endTime());
-        job.setDailyWage(r.dailyWage());
+        // Daily wages are whole rupees; normalise to guard against floating-point input
+        // artefacts (e.g. a browser number-input snapping 5000 to 4999.99) being persisted.
+        job.setDailyWage(r.dailyWage().setScale(0, RoundingMode.HALF_UP));
         job.setWorkersNeeded(r.workersNeeded());
     }
 

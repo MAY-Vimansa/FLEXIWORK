@@ -181,7 +181,7 @@ export default function JobFeed() {
                   <div className="card-top">
                     <span className={`badge2 ${badgeClass}`}>{badgeLabel}</span>
                     <div className="wage">
-                      <div className="amt">LKR {Number(job.dailyWage).toLocaleString()}</div>
+                      <div className="amt">LKR {Math.round(Number(job.dailyWage)).toLocaleString()}</div>
                       <div className="per">per day</div>
                     </div>
                   </div>

@@ -25,7 +25,7 @@ export default function JobCard({ job }) {
         <span className={low ? 'slots-low' : 'muted'} style={{ fontSize: 13, fontWeight: 600 }}>
           {job.slotsLeft} of {job.workersNeeded} slots left
         </span>
-        <span className="price">LKR {Number(job.dailyWage).toLocaleString()}</span>
+        <span className="price">LKR {Math.round(Number(job.dailyWage)).toLocaleString()}</span>
       </div>
     </Link>
   );
