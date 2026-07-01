@@ -307,6 +307,25 @@ function HistoryPanel({ apps }) {
   );
 }
 
+// A Sri Lankan NIC encodes the holder's date of birth: the day-of-year (offset by 500 for
+// females) sits after the birth year. Decode it for display so DOB stays locked, like the NIC.
+function dobFromNic(nic) {
+  if (!nic) return '';
+  const v = nic.trim().toUpperCase();
+  let year, days;
+  if (/^\d{9}[VX]$/.test(v)) { year = 1900 + parseInt(v.slice(0, 2), 10); days = parseInt(v.slice(2, 5), 10); }
+  else if (/^\d{12}$/.test(v)) { year = parseInt(v.slice(0, 4), 10); days = parseInt(v.slice(4, 7), 10); }
+  else return '';
+  if (days > 500) days -= 500;           // 500+ marks female; strip it to get the day-of-year
+  if (days < 1 || days > 366) return '';
+  // The encoding reserves day 60 for Feb 29 every year, so shift back a day in non-leap years.
+  const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  if (!leap && days > 59) days -= 1;
+  const d = new Date(year, 0, 1);
+  d.setDate(d.getDate() + (days - 1));
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 // ── PROFILE ──
 function ProfilePanel({ profile, districts, onSaved, showToast }) {
   const [form, setForm] = useState({
@@ -371,7 +390,8 @@ function ProfilePanel({ profile, districts, onSaved, showToast }) {
             <input value={profile.nicNumber || ''} disabled />
           </div>
           <div className="wd-fld">
-            <WhatsappField profile={profile} onSaved={onSaved} showToast={showToast} />
+            <label>Date of Birth (locked)</label>
+            <input value={dobFromNic(profile.nicNumber)} disabled />
           </div>
           <div className="wd-fld">
             <label>District</label>
@@ -399,74 +419,6 @@ function ProfilePanel({ profile, districts, onSaved, showToast }) {
   );
 }
 
-// ── WHATSAPP NUMBER (with change-number OTP flow) ──
-function WhatsappField({ profile, onSaved, showToast }) {
-  const [editing, setEditing] = useState(false);
-  const [step, setStep] = useState(1);
-  const [newNumber, setNewNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  function cancel() {
-    setEditing(false); setStep(1); setNewNumber(''); setOtp('');
-  }
-
-  async function sendOtp(e) {
-    e.preventDefault(); setBusy(true);
-    try {
-      await api.post('/api/worker/whatsapp/change/request', { newNumber });
-      showToast('Verification code sent to the new number via WhatsApp.');
-      setStep(2);
-    } catch (e) { showToast(e instanceof ApiError ? e.message : 'Could not send code.', 'error'); }
-    finally { setBusy(false); }
-  }
-
-  async function confirm(e) {
-    e.preventDefault(); setBusy(true);
-    try {
-      await api.post('/api/worker/whatsapp/change/confirm', { otp });
-      onSaved({ ...profile, whatsappNumber: '+94' + newNumber.slice(1), whatsappVerified: true });
-      showToast('WhatsApp number updated.');
-      cancel();
-    } catch (e) { showToast(e instanceof ApiError ? e.message : 'Verification failed.', 'error'); }
-    finally { setBusy(false); }
-  }
-
-  if (!editing) {
-    return (
-      <>
-        <label>WhatsApp {profile.whatsappVerified ? '✅ Verified' : '⚠️ Unverified'}</label>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input value={profile.whatsappNumber || ''} disabled style={{ flex: 1 }} />
-          <button type="button" className="wd-btn wd-btn-ghost" onClick={() => setEditing(true)}>Change</button>
-        </div>
-      </>
-    );
-  }
-
-  return step === 1 ? (
-    <form onSubmit={sendOtp}>
-      <label>New WhatsApp number</label>
-      <input value={newNumber} maxLength={10} placeholder="07XXXXXXXX"
-        onChange={(e) => setNewNumber(e.target.value.replace(/\D/g, ''))} required />
-      <div className="wd-form-actions" style={{ marginTop: 8 }}>
-        <button className="wd-btn wd-btn-primary" type="submit" disabled={busy || !/^07\d{8}$/.test(newNumber)}>
-          {busy ? 'Sending…' : 'Send code'}
-        </button>
-        <button className="wd-btn wd-btn-ghost" type="button" onClick={cancel}>Cancel</button>
-      </div>
-    </form>
-  ) : (
-    <form onSubmit={confirm}>
-      <label>Code sent to {newNumber}</label>
-      <input value={otp} placeholder="123456" onChange={(e) => setOtp(e.target.value)} required />
-      <div className="wd-form-actions" style={{ marginTop: 8 }}>
-        <button className="wd-btn wd-btn-primary" type="submit" disabled={busy}>{busy ? 'Verifying…' : 'Verify & save'}</button>
-        <button className="wd-btn wd-btn-ghost" type="button" onClick={cancel}>Cancel</button>
-      </div>
-    </form>
-  );
-}
 
 // ── CHANGE PASSWORD ──
 function PasswordPanel({ email, showToast }) {
