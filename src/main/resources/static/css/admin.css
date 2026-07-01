@@ -320,8 +320,20 @@ tr:hover td { background: #FAFAFA; }
 .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 .btn-danger { background: #fff; border: 1.5px solid var(--error); color: var(--error); }
 .btn-danger:hover { background: var(--error); color: #fff; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 form.inline { display: inline; }
+
+/* Round trash-icon button used in the ledger/jobs "Actions" column. */
+.btn-icon-danger {
+  width: 32px; height: 32px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 8px; border: 1.5px solid var(--border);
+  background: transparent; color: var(--text-muted);
+  cursor: pointer; padding: 0;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.btn-icon-danger:hover { background: var(--error); color: #fff; border-color: var(--error); }
+[data-theme="dark"] .btn-icon-danger { border-color: var(--border); }
 
 /* ── Badges ──────────────────────────────────────────────── */
 .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; }

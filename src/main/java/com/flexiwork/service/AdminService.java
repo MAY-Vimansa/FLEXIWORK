@@ -29,6 +29,9 @@ public class AdminService {
     private final WorkerProfileRepository workerRepository;
     private final JobPostRepository jobRepository;
     private final PaymentRepository paymentRepository;
+    private final ApplicationRepository applicationRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final ShiftExtensionRepository shiftExtensionRepository;
     private final ContactMessageRepository contactMessageRepository;
     private final NotificationTriggers notificationTriggers;
 
@@ -37,6 +40,9 @@ public class AdminService {
                         WorkerProfileRepository workerRepository,
                         JobPostRepository jobRepository,
                         PaymentRepository paymentRepository,
+                        ApplicationRepository applicationRepository,
+                        AttendanceRepository attendanceRepository,
+                        ShiftExtensionRepository shiftExtensionRepository,
                         ContactMessageRepository contactMessageRepository,
                         NotificationTriggers notificationTriggers) {
         this.userRepository = userRepository;
@@ -44,6 +50,9 @@ public class AdminService {
         this.workerRepository = workerRepository;
         this.jobRepository = jobRepository;
         this.paymentRepository = paymentRepository;
+        this.applicationRepository = applicationRepository;
+        this.attendanceRepository = attendanceRepository;
+        this.shiftExtensionRepository = shiftExtensionRepository;
         this.contactMessageRepository = contactMessageRepository;
         this.notificationTriggers = notificationTriggers;
     }
@@ -175,6 +184,90 @@ public class AdminService {
         job.setStatus(com.flexiwork.entity.enums.JobStatus.CANCELLED);
         jobRepository.save(job);
         notificationTriggers.onJobCancelled(job);
+    }
+
+    // ---- Hard deletes (admin ledger/jobs "delete" icon) --------------------------------------
+    //
+    // The foreign keys carry no ON DELETE CASCADE, so each entity is removed child-first and the
+    // persistence context is flushed between levels to force the DELETE statements out in an order
+    // the database will accept.
+
+    /** Permanently removes a job together with its applications, attendances, shift extensions and
+     *  commission payment. */
+    @Transactional
+    public void deleteJob(Long jobId) {
+        com.flexiwork.entity.JobPost job = jobRepository.findById(jobId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Job", jobId));
+        deleteJobGraph(job);
+    }
+
+    /** Permanently removes a worker: their applications and attendances, the profile, then the
+     *  underlying login account. */
+    @Transactional
+    public void deleteWorker(Long workerId) {
+        WorkerProfile worker = workerRepository.findById(workerId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Worker", workerId));
+
+        for (com.flexiwork.entity.Application app : applicationRepository.findByWorkerOrderByAppliedAtDesc(worker)) {
+            attendanceRepository.findByApplication(app).ifPresent(attendanceRepository::delete);
+        }
+        attendanceRepository.flush();
+        applicationRepository.deleteAll(applicationRepository.findByWorkerOrderByAppliedAtDesc(worker));
+        applicationRepository.flush();
+
+        com.flexiwork.entity.User account = worker.getUser();
+        workerRepository.delete(worker);
+        workerRepository.flush();
+        if (account != null) {
+            userRepository.delete(account);
+        }
+    }
+
+    /** Permanently removes a company: every job it posted (and each job's graph), its payments,
+     *  its guard/poster staff accounts, the profile, then the underlying login account. */
+    @Transactional
+    public void deleteCompany(Long companyId) {
+        CompanyProfile company = companyRepository.findById(companyId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Company", companyId));
+
+        // Commission charges owed by the company (payments FK job_posts + company_profiles).
+        paymentRepository.deleteAll(paymentRepository.findByCompany(company));
+        paymentRepository.flush();
+
+        // Every job it posted, along with each job's applications/attendances/extensions.
+        for (com.flexiwork.entity.JobPost job : jobRepository.findByCompany(company)) {
+            deleteJobGraph(job);
+        }
+
+        // Staff sub-accounts (COMPANY_GUARD / COMPANY_POSTER) owned by this company.
+        userRepository.deleteAll(userRepository.findByParentCompany(company));
+        userRepository.flush();
+
+        com.flexiwork.entity.User owner = company.getUser();
+        companyRepository.delete(company);
+        companyRepository.flush();
+        if (owner != null) {
+            userRepository.delete(owner);
+        }
+    }
+
+    /** Deletes a single job and everything that references it, child rows first. */
+    private void deleteJobGraph(com.flexiwork.entity.JobPost job) {
+        java.util.List<com.flexiwork.entity.Application> apps = applicationRepository.findByJobPost(job);
+        for (com.flexiwork.entity.Application app : apps) {
+            attendanceRepository.findByApplication(app).ifPresent(attendanceRepository::delete);
+        }
+        attendanceRepository.flush();
+
+        applicationRepository.deleteAll(apps);
+        applicationRepository.flush();
+
+        shiftExtensionRepository.deleteAll(shiftExtensionRepository.findByJobPostOrderByIdAsc(job));
+        paymentRepository.findByJobPost(job).ifPresent(paymentRepository::delete);
+        paymentRepository.flush();
+
+        jobRepository.delete(job);
+        jobRepository.flush();
     }
 
     /** Pending verification counts for the sidebar badges. */

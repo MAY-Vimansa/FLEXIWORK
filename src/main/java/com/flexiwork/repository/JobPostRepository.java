@@ -30,6 +30,9 @@ public interface JobPostRepository extends JpaRepository<JobPost, Long>,
 
     List<JobPost> findByCompanyAndStatus(CompanyProfile company, JobStatus status);
 
+    /** Every job a company posted — used by the admin hard-delete to clean up its job graph. */
+    List<JobPost> findByCompany(CompanyProfile company);
+
     /** Drives the scheduled auto-expiry of OPEN jobs whose shift end has already passed. */
     List<JobPost> findByStatus(JobStatus status);
 
