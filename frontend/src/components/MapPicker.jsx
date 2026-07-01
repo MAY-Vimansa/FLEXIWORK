@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -18,7 +19,9 @@ function ClickCapture({ onPick }) {
 
 function Recenter({ lat, lng }) {
   const map = useMap();
-  if (lat && lng) map.setView([lat, lng], map.getZoom());
+  useEffect(() => {
+    if (lat && lng) map.setView([lat, lng], map.getZoom());
+  }, [lat, lng, map]);
   return null;
 }
 
