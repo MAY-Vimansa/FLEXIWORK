@@ -126,6 +126,35 @@ public class AdminController {
         return "redirect:/admin/jobs";
     }
 
+    /** Permanently removes a job and everything referencing it. */
+    @DeleteMapping("/admin/jobs/{id}/delete")
+    public String deleteJob(@PathVariable Long id) {
+        adminService.deleteJob(id);
+        return "redirect:/admin/jobs";
+    }
+
+    // ---- Ledger hard deletes ----
+    @DeleteMapping("/admin/workers/{id}")
+    public String deleteWorker(@PathVariable Long id, HttpServletRequest request) {
+        adminService.deleteWorker(id);
+        return redirectToLedger(request, "workers");
+    }
+
+    @DeleteMapping("/admin/companies/{id}")
+    public String deleteCompany(@PathVariable Long id, HttpServletRequest request) {
+        adminService.deleteCompany(id);
+        return redirectToLedger(request, "companies");
+    }
+
+    /** Returns to the ledger the delete was triggered from, preserving its filters via Referer. */
+    private String redirectToLedger(HttpServletRequest request, String type) {
+        String referer = request.getHeader("Referer");
+        if (referer != null && referer.contains("/admin/ledger")) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/admin/ledger?type=" + type;
+    }
+
     // ---- Payments ----
     @GetMapping("/admin/payments")
     public String payments(Model model) {
