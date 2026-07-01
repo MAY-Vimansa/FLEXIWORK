@@ -12,8 +12,8 @@ public record CompanyRegistrationRequest(
         @NotBlank @Pattern(regexp = "^[\\w.+-]+@[A-Za-z\\d-]+\\.[A-Za-z]{2,}$",
                 message = "Email must be a valid address, e.g. name@example.com")
         String email,
-        @NotBlank @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,13}$",
-                message = "Password must be 8-13 characters with a mix of letters and numbers")
+        @NotBlank @Pattern(regexp = "^(?=[A-Z])(?=.*\\d)(?=.*[@#$])[A-Za-z\\d@#$]{8,12}$",
+                message = "Password must be 8-12 characters, start with a capital letter, and include a number and a symbol (@, # or $)")
         String password,
         @NotNull District district,
         @NotBlank @Size(max = 255) String addressLine,

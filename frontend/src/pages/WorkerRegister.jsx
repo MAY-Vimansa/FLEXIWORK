@@ -320,18 +320,18 @@ export default function WorkerRegister() {
 
                 <div className="wr-field"><label>Password</label>
                   <div className="auth-pwd-wrap">
-                    <input className="auth-input" type={showPw ? 'text' : 'password'} maxLength={13} value={details.password}
+                    <input className="auth-input" type={showPw ? 'text' : 'password'} maxLength={12} value={details.password}
                       onChange={(e) => setDetails({ ...details, password: e.target.value })} />
                     <button type="button" className="wr-show-btn" onClick={() => setShowPw((v) => !v)}>
                       {showPw ? 'HIDE' : 'SHOW'}
                     </button>
                   </div>
                   {details.password && !PASSWORD_RE.test(details.password) &&
-                    <div className="auth-err">8-13 letters/numbers, with at least one letter and one number</div>}{fe('password')}</div>
+                    <div className="auth-err">8–12 characters, must start with a capital letter and include a number and a symbol (@, # or $)</div>}{fe('password')}</div>
 
                 <div className="wr-field"><label>Confirm password</label>
                   <div className="auth-pwd-wrap">
-                    <input className="auth-input" type={showConfirmPw ? 'text' : 'password'} maxLength={13} value={details.confirmPassword}
+                    <input className="auth-input" type={showConfirmPw ? 'text' : 'password'} maxLength={12} value={details.confirmPassword}
                       onChange={(e) => setDetails({ ...details, confirmPassword: e.target.value })} />
                     <button type="button" className="wr-show-btn" onClick={() => setShowConfirmPw((v) => !v)}>
                       {showConfirmPw ? 'HIDE' : 'SHOW'}
@@ -341,7 +341,7 @@ export default function WorkerRegister() {
                     <div className="auth-err">Passwords do not match</div>}{fe('confirmPassword')}</div>
               </div>
 
-              <p className="auth-hint">8–13 characters, mixing letters and numbers.</p>
+              <p className="auth-hint">8–12 characters, must start with a capital letter and include a number and a symbol (@, # or $).</p>
 
               <button className="auth-btn" onClick={() => setStep(2)} disabled={!step1Valid || !files.profilePhoto}>
                 Continue to documents →

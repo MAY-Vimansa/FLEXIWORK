@@ -74,14 +74,14 @@ export default function ForgotPassword() {
                 {otp && !OTP_RE.test(otp) && <div className="auth-err">Enter the 6-digit code from your email</div>}</div>
               <div className="auth-field"><label>New password</label>
                 <div className="auth-pwd-wrap">
-                  <input className="auth-input" type={showPw ? 'text' : 'password'} maxLength={13} required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                  <input className="auth-input" type={showPw ? 'text' : 'password'} maxLength={12} required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                   <button type="button" className="auth-eye-btn" onClick={() => setShowPw(v => !v)} aria-label={showPw ? 'Hide password' : 'Show password'}>
                     <EyeIcon open={showPw} />
                   </button>
                 </div>
                 {newPassword && !PASSWORD_RE.test(newPassword) &&
-                  <div className="auth-err">Password must be 8-13 letters/numbers only, with at least one letter and one number</div>}
-                <p className="auth-hint">8-13 characters, mixing letters and numbers</p></div>
+                  <div className="auth-err">8–12 characters, must start with a capital letter and include a number and a symbol (@, # or $)</div>}
+                <p className="auth-hint">8–12 characters, must start with a capital letter and include a number and a symbol (@, # or $)</p></div>
               <button className="auth-btn" disabled={busy || !PASSWORD_RE.test(newPassword) || !OTP_RE.test(otp)}>Reset password</button>
             </form>
           )}

@@ -141,14 +141,14 @@ function ChangePassword({ email }) {
           <div className="field">
             <label>New password</label>
             <div className="pwd-wrap">
-              <input className="input" type={showPw ? 'text' : 'password'} maxLength={13} required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+              <input className="input" type={showPw ? 'text' : 'password'} maxLength={12} required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
               <button type="button" className="eye-btn" onClick={() => setShowPw(v => !v)} aria-label={showPw ? 'Hide password' : 'Show password'}>
                 <EyeIcon open={showPw} />
               </button>
             </div>
             {newPassword && !PASSWORD_RE.test(newPassword) &&
-              <div className="field-error">Must be 8-13 letters/numbers, with at least one letter and one number</div>}
-            <p className="auth-hint">8-13 characters, mixing letters and numbers</p>
+              <div className="field-error">8–12 characters, must start with a capital letter and include a number and a symbol (@, # or $)</div>}
+            <p className="auth-hint">8–12 characters, must start with a capital letter and include a number and a symbol (@, # or $)</p>
           </div>
           <button className="btn btn-primary btn-sm" disabled={!PASSWORD_RE.test(newPassword) || !OTP_RE.test(otp)}>Set new password</button>
         </form>

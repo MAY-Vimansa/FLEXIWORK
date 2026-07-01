@@ -146,7 +146,7 @@ export default function Staff() {
             <label className="st-label">Temporary password</label>
             <div className="st-pwd">
               <input
-                className="st-input" type={showPw ? 'text' : 'password'} maxLength={13}
+                className="st-input" type={showPw ? 'text' : 'password'} maxLength={12}
                 placeholder="Set a temporary password"
                 value={form.tempPassword}
                 onChange={(e) => setForm({ ...form, tempPassword: e.target.value })}
@@ -157,7 +157,7 @@ export default function Staff() {
               </button>
             </div>
             {form.tempPassword && !pwValid &&
-              <div className="field-error">Must be 8-13 letters/numbers, with at least one letter and one number</div>}
+              <div className="field-error">8–12 characters, must start with a capital letter and include a number and a symbol (@, # or $)</div>}
           </div>
 
           <button className="st-create" disabled={busy || !emailValid || !pwValid}>
