@@ -6,7 +6,7 @@ spring:
 
   datasource:
     url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&allowPublicKeyRetrieval=true
-    username:  ${MYSQLUSER}
+    username: ${MYSQLUSER}
     password: ${MYSQLPASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
@@ -25,10 +25,6 @@ spring:
       max-file-size: 5MB
       max-request-size: 25MB     # registration uploads several files at once
 
-resend:
-  api-key: ${RESEND_API_KEY:}
-  from: ${RESEND_FROM:onboarding@resend.dev}
-
   thymeleaf:
     cache: false
 
@@ -36,6 +32,10 @@ resend:
     hiddenmethod:
       filter:
         enabled: true     # enables HiddenHttpMethodFilter for _method PUT/DELETE in admin forms
+
+resend:
+  api-key: ${RESEND_API_KEY:}
+  from: ${RESEND_FROM:onboarding@resend.dev}
 
 server:
   port: ${PORT:8080}
@@ -51,33 +51,28 @@ server:
 # FlexiWork application settings
 # ----------------------------------------------------------------------------
 flexiwork:
-  # Public base URL of this server (used to build absolute QR image links for WhatsApp).
-  # In production set this to the publicly reachable HTTPS origin.
   public-base-url: ${FLEXIWORK_PUBLIC_BASE_URL:http://localhost:8080}
 
   jwt:
-    # Base64-ish long secret; override via JWT_SECRET env var in real deployments. Must be >= 32 bytes for HS256.
     secret: ${JWT_SECRET:flexiwork-dev-secret-change-me-please-0123456789-abcdefgh}
     expiration-ms: 86400000      # 24h
 
   uploads:
-    dir: uploads                 # relative to working dir; worker/company files land here
+    dir: uploads
 
   payment:
-    commission-rate: 0.10        # 10% — stored on each Payment at creation, never hardcoded in math
-    grace-days: 7                # company must pay within 7 days or it is suspended
+    commission-rate: 0.10
+    grace-days: 7
 
   approval:
-    auto-window-minutes: 720     # PENDING accounts auto-approve after 12h (lower this to demo)
+    auto-window-minutes: 720
 
   application:
-    cancel-cutoff-hours: 2       # cannot cancel within 2h of the shift start
+    cancel-cutoff-hours: 2
 
-  support-email: support@flexiwork.lk   # contact-form submissions are forwarded here
+  support-email: support@flexiwork.lk
 
   cors:
-    # Comma-separated list of allowed frontend origins. Override via FLEXIWORK_CORS_ALLOWED_ORIGINS
-    # in production (e.g. https://app.flexiwork.lk) — never leave this as the Vite dev origin.
     allowed-origins: ${FLEXIWORK_CORS_ALLOWED_ORIGINS:http://localhost:5173}
 
   whatsapp:
@@ -101,8 +96,6 @@ logging:
     com.flexiwork: INFO
 
 cloudinary:
-  # Empty local defaults so the app boots without Cloudinary env vars set.
-  # Uploads that actually hit Cloudinary won't work until these are provided.
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}
   api-key: ${CLOUDINARY_API_KEY:}
   api-secret: ${CLOUDINARY_API_SECRET:}
