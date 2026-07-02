@@ -71,7 +71,7 @@
 .home .count-pill { background: var(--red-tint); color: var(--red); font-weight: 700; font-size: 13px; padding: 5px 12px; border-radius: 999px; }
 .home .sort-label { margin-left: auto; font-size: 14px; color: var(--muted); font-weight: 500; }
 
-.home .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.home .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
 
 /* Job card */
 .home .jc { background: #fff; border-radius: var(--hradius); border: 1px solid var(--line); box-shadow: var(--shadow-sm); padding: 22px; display: flex; flex-direction: column; transition: transform .16s, box-shadow .16s, border-color .16s; cursor: pointer; text-decoration: none; color: inherit; }
@@ -92,12 +92,12 @@
 .home .co { font-size: 14px; font-weight: 700; color: var(--red); }
 .home .map-btn { flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--red); background: var(--red-tint); border: 1px solid var(--red-tint-2); padding: 5px 11px; border-radius: 999px; text-decoration: none; }
 .home .map-btn:hover { background: var(--red); color: #fff; text-decoration: none; }
-.home .desc { font-size: 14px; color: var(--muted); margin-top: 12px; line-height: 1.45; }
+.home .desc { font-size: 14px; color: var(--muted); margin-top: 12px; line-height: 1.45; flex-grow: 1; }
 .home .meta { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 11px 14px; }
 .home .mrow { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-2); font-weight: 500; }
-.home .chips2 { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; gap: 8px; flex-wrap: wrap; }
+.home .chips2 { margin-top: 16px; margin-bottom: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; gap: 8px; flex-wrap: wrap; }
 .home .chip2 { font-size: 12.5px; font-weight: 600; color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); padding: 5px 11px; border-radius: 8px; }
-.home .apply { margin-top: 16px; background: var(--red); color: #fff; font-weight: 700; font-size: 14.5px; padding: 11px; border-radius: 11px; width: 100%; border: none; cursor: pointer; }
+.home .apply { margin-top: auto; background: var(--red); color: #fff; font-weight: 700; font-size: 14.5px; padding: 11px; border-radius: 11px; width: 100%; border: none; cursor: pointer; }
 .home .apply:hover { background: var(--red-600); }
 .home .slots-low2 { color: var(--red); font-weight: 700; }
 
